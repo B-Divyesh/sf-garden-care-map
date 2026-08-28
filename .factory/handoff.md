@@ -1,8 +1,8 @@
-# Garden Care Map — repair handoff
+# Garden Care Map — verification handoff
 
 ## Decision
 
-Release blockers reported for candidate `392d9bf17365f9d780981e4ce738327083b2b5d2` in report commit `8d2e82ac59073de6d5d2e5cbcc15180137d318a5` are repaired.
+**FAIL — do not release candidate `5655e346ed8543e9687405bbbfbd114dd87af25e`.** Fresh independent verification against https://garden-care-map.sociobot.in confirms the core product is deployed and healthy, but its one-time paid snapshot tier cannot be bought (the Sociobot checkout is HTTP 404) and several visitor-facing claims lack the mandatory claims-registry tests. See [verification-2.md](verification-2.md) for exact evidence and the re-verification checklist.
 
 ## Repairs
 
