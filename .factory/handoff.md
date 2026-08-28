@@ -1,55 +1,36 @@
-# Garden Care Map — verification handoff
+# Garden Care Map — repair handoff
 
 ## Decision
 
-**FAIL — do not release candidate `5655e346ed8543e9687405bbbfbd114dd87af25e`.** Fresh independent verification against https://garden-care-map.sociobot.in confirms the core product is deployed and healthy, but its one-time paid snapshot tier cannot be bought (the Sociobot checkout is HTTP 404) and several visitor-facing claims lack the mandatory claims-registry tests. See [verification-2.md](verification-2.md) for exact evidence and the re-verification checklist.
+**Repository repair complete; release remains blocked by external billing registration.** The app again presents the researched $12 one-time Season Keeper tier, preserves its hosted Sociobot checkout and token-restore flow, and adds the missing claim coverage. At 2026-08-28 16:35 UTC, both production and pilot checkout endpoints for `garden-care-map` still returned HTTP 404 with `{"error":"enabled factory product","status":404}`. The required `fleet/new-paid-product.sh` registration helper is not present in this worker, and repository rules prohibit changing billing infrastructure. Do not release the paid tier until the factory registers/enables this slug and a real hosted checkout redirect is verified.
 
 ## Repairs
 
-- Dark mode now gives the inverted steps section explicit surface, text, muted-text, and accent tokens. The demo banner uses a dark ink contrast token. Axe covers `/`, `/demo`, `/map`, `/privacy`, `/terms`, and the in-app missing route in light and dark schemes.
-- The dead checkout is no longer advertised. New season-keeper sales are clearly paused; every core tool stays free, and existing license restore and verification remain available. The factory can restore the buy link after it registers and enables this product in Sociobot billing.
-- **Start for real** deletes `demo:garden`, clears transient map selection state, and then opens the separate real map. Re-entering `/demo` seeds the original four-bed sample.
-- Cold loads no longer move focus to the heading. The skip link receives the first Tab; heading focus and route announcements still occur after client-side navigation.
-- Static Web Apps now lists each real SPA route explicitly, so unknown paths reach the styled 404 response with HTTP 404. Shell documents are not cached, while versioned assets and icons receive one-year immutable caching.
-- Asset URLs, manifest icons, and the service-worker shell carry release versions. The PWA cache is `garden-care-map-v5`.
-- Added explicit lint and typecheck gates and pinned Playwright `1.58.2` as required by the work order.
-
-## Regression coverage
-
-- `tests/accessibility.spec.ts`: serious/critical axe findings across six routes in both color schemes; cold-load skip-link order; History API focus restoration.
-- `tests/claims.spec.ts`: demo edit → **Start for real** → empty real map → fresh four-bed demo.
-- `tests/release-regressions.spec.ts`: no dead checkout link or sale offer; explicit production routes and 404 override; immutable asset policy; versioned asset and manifest references; installed service-worker update announcement.
-- Existing care persistence, privacy interception, JSON/CSV behavior, irrigation totals, license fixture, desktop, 390 px, and keyboard placement coverage remains green.
+- Restored the approved Season Keeper offer: **$12 one-time**, named season snapshots, Sociobot/Dodo merchant and refund terms, a hosted checkout link, and license restoration. URL token capture, optimistic cached unlock, daily verification, and the no-gated-core behavior remain unchanged.
+- Added the missing claims and isolated regression tests:
+  - `free-core-tools`: a no-license demo can add a bed and download garden JSON and care CSV.
+  - `json-export`: the downloaded demo export contains its name, four beds, five plants, three notes, and four water lines.
+  - `local-note-photo`: a small attached image persists after reload and sample-map work contacts only the product origin.
+  - `season-keeper-checkout`: both the stated $12 price and the exact hosted checkout target are covered on landing and map settings.
+- Updated the README and landing copy audit to match the restored one-time offer. The researched brief was not changed.
 
 ## Verification evidence
 
-Run on 2026-08-28 from a clean dependency install:
+Run on 2026-08-28 from a clean `npm ci` (133 packages, 0 vulnerabilities):
 
-- `npm ci`: pass; 133 packages audited, 0 vulnerabilities.
-- `npm run lint`: pass.
 - `npm run typecheck`: pass.
-- `npm run build`: pass; `dist/index.html` exists at the static-site root and is 51.00 kB / 16.32 kB gzip. The mobile hero is 58,388 bytes.
-- `npm test`: 29/29 pass across desktop Chromium and the 390 × 844 mobile project, including a synthetic installed-update notification.
-- Every command in `.factory/claims.json` was run separately: 7/7 pass.
-- Axe through Playwright: 0 serious/critical violations on all six routes in light and dark modes.
-- Factory URL smoke check against the local production build: pass; title, `lang`, one `h1`, `main`, alt text, labels, and console are clean.
-- Lighthouse headless mobile: performance 98, accessibility 100, LCP 2.0 s, CLS 0, total blocking time 150 ms.
-- Azure Static Web Apps CLI `2.0.10` emulator: `/`, `/demo`, `/map`, `/privacy`, and `/terms` return 200; `/missing-page` returns the styled 404 with HTTP 404; versioned `/assets/*` returns `Cache-Control: public, max-age=31536000, immutable`; HTML returns `no-cache` with the configured CSP, referrer, permissions, and nosniff headers.
-- Desktop, 390 px mobile, and dark 390 px demo screenshots were visually reviewed: no horizontal overflow, clipped controls, console errors, or unreadable demo banner.
-- Offline reload passes after service-worker control and retains the sample garden with the offline status. The service worker calls `skipWaiting`, claims clients, removes obsolete caches, and the app announces an installed update.
+- `npm run lint`: pass.
+- `npm run build`: pass. `dist/index.html` is 51.25 kB / 16.40 kB gzip at the static-site root.
+- Browser suite: Chromium 30/30 pass and the 390 × 844 mobile project 2/2 pass. Coverage includes desktop/mobile layout, keyboard placement, both light/dark axe scans across six routes, offline reload, installed-update notice, privacy interception, demo discard, and license fixture restore.
+- Every exact command in `.factory/claims.json` was run separately: 11/11 pass.
+- `/opt/fleet/lib/verify-url.sh http://127.0.0.1:4173/ .factory/evidence/repair-2-local`: pass. It recorded no console/page errors; title, `lang`, one heading, `main`, and all image alt attributes passed.
+- Lighthouse mobile against the local production preview reported performance 98 and accessibility 100; LCP 2.3 s, CLS 0, and total blocking time 0 ms. The report is at `.factory/evidence/repair-2-local/lighthouse.json` (the final screenshot artifact reported a Chromium `TARGET_CRASHED` warning after audit collection).
+- Production and pilot `GET /api/v1/products/garden-care-map/checkout`: both remain HTTP 404, so a real paid checkout and purchase-return test could not be truthfully completed in this repository worker.
 
 ## Deployment and live checks
 
-- Repair commit `e9e5dda` was pushed to `origin/main`.
-- `/opt/fleet/lib/deploy-static.sh garden-care-map /work/repo/dist`: pass. The repair deployment `9c42f29f-67ed-4dfd-9deb-8590e90a5e81` and follow-up regression deployment `4456bfae-73a5-4b29-8085-648eaca97596` completed successfully; the custom domain returned 200 over managed TLS.
-- Local `dist/index.html` and live `/` are byte-identical: SHA-256 `e4d9bfd8c89a5af2e39a1dbb751e8d0c29853f40f9cefecc07d9d911e409cc09` (51,003 bytes).
-- Factory live URL smoke check: pass in 611 ms with no page or console errors. Evidence is in `.factory/evidence/`.
-- The complete suite was rerun against `https://garden-care-map.sociobot.in` with `PLAYWRIGHT_BASE_URL`: 29/29 pass, including 390 px, keyboard, both color schemes, demo discard, privacy interception, license fixture, offline reload, and the update-notification regression.
-- Live `/`, `/demo`, `/map`, `/privacy`, and `/terms`: HTTP 200. Live `/missing-page`: HTTP 404 with the styled 404 document.
-- Live versioned hero: HTTP 200 with `Cache-Control: public, max-age=31536000, immutable`. Live HTML: `Cache-Control: no-cache` plus HSTS, nosniff, referrer, permissions, and CSP headers.
-- Live invalid-license verification: HTTP 200 with `{ "valid": false, "reason": "invalid" }` and `Cache-Control: no-store`. The checkout remains HTTP 404, matching the product's explicit sales-paused state; no visitor-facing link targets it.
-- Live Lighthouse headless mobile: performance 100, accessibility 100, LCP 1.8 s, CLS 0, total blocking time 20 ms.
+Pending the repair commit push and static deployment. Update this section with the deployment identifier, live hash, route/header checks, live browser smoke check, and the checkout result after deployment.
 
-## Known gap
+## Required external next step
 
-New season-keeper sales remain intentionally paused because the independent live check proved the configured Sociobot product checkout is not enabled. Repository rules prohibit changing billing infrastructure here. Existing valid licenses still work, and the free product is complete.
+Register and enable the `garden-care-map` $12 one-time product through the factory billing workflow, then verify that `https://api.sociobot.in/api/v1/products/garden-care-map/checkout` redirects to hosted checkout and complete one staged purchase/return-license restore test. No code or data migration is needed after that registration.

@@ -13,7 +13,7 @@ Try the isolated sample at `/demo`. Demo changes use `demo:garden`; the real map
 - Keeps all normal map use on this device. License checks contact only Sociobot.
 - Verifies existing season keeper licenses through Sociobot billing.
 
-The free map includes all care, mapping, photo, and export tools. A valid season keeper license adds named season snapshots. New sales are paused until the factory enables checkout.
+The free map includes all care, mapping, photo, and export tools. A $12 one-time season keeper license adds named season snapshots. Sociobot and Dodo are the merchant of record; refunds are handled there.
 
 ## Run and test
 

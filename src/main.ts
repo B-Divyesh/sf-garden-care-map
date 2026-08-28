@@ -104,8 +104,8 @@ function renderHome() {
       <p>This tool records what you plant and do. It does not identify plants, diagnose disease, predict weather, or recommend pesticides.</p>
     </section>
     <section class="paid" aria-labelledby="paid-title">
-      <div><p class="eyebrow">Optional season keeper</p><h2 id="paid-title">Keep past seasons on this device</h2><p>An active season keeper license adds named snapshots. Every mapping and export tool stays free.</p></div>
-      <div class="price-sheet"><p><strong>Sales paused</strong></p><p>The season keeper is not for sale while checkout is unavailable.</p><button class="secondary" data-action="show-license">Restore a license</button><p class="fine">Already have a license? You can keep using it on this device.</p></div>
+      <div><p class="eyebrow">Optional season keeper</p><h2 id="paid-title">Keep past seasons for $12 once</h2><p>The free map includes every core tool and data export. A one-time purchase adds named season snapshots on this device.</p></div>
+      <div class="price-sheet"><p><strong>$12</strong> one-time purchase</p><a class="primary button-link" href="${BILLING}/checkout">Buy the season keeper <span class="sr-only">through Sociobot checkout</span></a><button class="secondary" data-action="show-license">Restore a license</button><p class="fine">Sociobot and Dodo are the merchant of record. Refunds are handled there.</p></div>
     </section>
     <section id="license-panel" class="license-panel" hidden aria-labelledby="license-title"><h2 id="license-title">Restore your season keeper</h2><form id="license-form"><label for="license">License token</label><input id="license" name="license" required autocomplete="off" /><button class="primary">Verify license</button><p id="license-status" aria-live="polite"></p></form></section>
   `, { title: 'Home' });
@@ -217,7 +217,7 @@ function renderInspector() {
 
 function renderArchivePanel() {
   const unlocked = licenseIsActive();
-  return `<div class="archive-panel"><h3>Season archive</h3>${unlocked ? `<p>Save a named snapshot before you clear or replant the map.</p><form id="archive-form"><label for="archive-name">Season name</label><input id="archive-name" name="name" required maxlength="40" placeholder="Summer 2026" /><button class="secondary">Save season snapshot</button></form>${garden.archives.length ? `<ul>${garden.archives.map(a => `<li><strong>${escapeHtml(a.name)}</strong><span>${a.counts.beds} beds · ${a.counts.plants} plants · ${a.counts.notes} notes</span><button class="small-link" data-export-archive="${a.id}">Download snapshot</button></li>`).join('')}</ul>` : ''}` : `<p>Season keeper sales are paused while checkout is unavailable. The map and exports stay free.</p><form id="license-form"><label for="license">Have a license? Paste it here</label><input id="license" name="license" required autocomplete="off" /><button class="secondary">Verify license</button><p id="license-status" aria-live="polite"></p></form>`}</div>`;
+  return `<div class="archive-panel"><h3>Season archive</h3>${unlocked ? `<p>Save a named snapshot before you clear or replant the map.</p><form id="archive-form"><label for="archive-name">Season name</label><input id="archive-name" name="name" required maxlength="40" placeholder="Summer 2026" /><button class="secondary">Save season snapshot</button></form>${garden.archives.length ? `<ul>${garden.archives.map(a => `<li><strong>${escapeHtml(a.name)}</strong><span>${a.counts.beds} beds · ${a.counts.plants} plants · ${a.counts.notes} notes</span><button class="small-link" data-export-archive="${a.id}">Download snapshot</button></li>`).join('')}</ul>` : ''}` : `<p>A $12 one-time purchase adds named season snapshots. The map and exports stay free.</p><a href="${BILLING}/checkout">Buy the season keeper</a><form id="license-form"><label for="license">Have a license? Paste it here</label><input id="license" name="license" required autocomplete="off" /><button class="secondary">Verify license</button><p id="license-status" aria-live="polite"></p></form>`}</div>`;
 }
 
 function renderLegal(kind: 'privacy'|'terms') {
@@ -227,13 +227,13 @@ function renderLegal(kind: 'privacy'|'terms') {
   const body = privacy ? `
     <h1 tabindex="-1">Your garden data stays with you</h1><p class="lede">Garden Care Map stores maps, notes, photos, settings, and licenses in your browser.</p>
     <h2>What this site stores</h2><p>Your garden data uses IndexedDB. Your license token and last verification use local storage. Demo data uses a separate key and never reads your real map.</p>
-    <h2>When data leaves this device</h2><p>Normal map use sends no garden data to us. Verifying a license contacts Sociobot. No garden data is included.</p>
+    <h2>When data leaves this device</h2><p>Normal map use sends no garden data to us. Buying or verifying a license opens or contacts Sociobot. Its payment provider handles checkout details.</p>
     <h2>Your choices</h2><p>You can export your garden at any time. Clear the map in Map settings, or remove this site’s browser data. Uninstalling the app does not always remove browser data.</p>
     <h2>Contact</h2><p>Email <a href="mailto:privacy@sociobot.in">privacy@sociobot.in</a> with privacy questions.</p>` : `
     <h1 tabindex="-1">Terms for using Garden Care Map</h1><p class="lede">Use this tool to keep your own garden records. These terms apply from 28 August 2026.</p>
     <h2>The tool</h2><p>Garden Care Map records information you enter. It does not give agronomic, medical, pesticide, or safety advice. Check trusted local guidance before acting.</p>
     <h2>Your data</h2><p>You are responsible for your data and backups. Use the export tools before clearing browser storage or moving devices.</p>
-    <h2>Season keeper</h2><p>Season keeper sales are paused. Existing active licenses still add named season snapshots.</p>
+    <h2>Purchase</h2><p>The $12 season keeper is a one-time license purchase. Sociobot and Dodo are the merchant of record. Refunds are handled through the merchant and revoke the license.</p>
     <h2>Availability</h2><p>The software is provided as is, without a promise that it fits every garden or device. Liability is limited where the law allows.</p>
     <h2>Contact</h2><p>Email <a href="mailto:support@sociobot.in">support@sociobot.in</a> with terms or purchase questions.</p>`;
   app.innerHTML = shell(`<article class="prose-page">${body}</article>`, { title: privacy ? 'Privacy' : 'Terms' });

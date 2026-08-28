@@ -1,11 +1,14 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 
-test('unavailable checkout is not advertised as a working purchase link', async ({ page }) => {
+test('@claim:season-keeper-checkout season keeper states its price and uses the hosted Sociobot checkout', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByText('Sales paused', { exact: true })).toBeVisible();
-  await expect(page.locator('a[href*="/products/garden-care-map/checkout"]')).toHaveCount(0);
+  await expect(page.getByText('$12 one-time purchase', { exact: true })).toBeVisible();
+  await expect(page.getByRole('link', { name: /Buy the season keeper/ })).toHaveAttribute('href', 'https://api.sociobot.in/api/v1/products/garden-care-map/checkout');
   await expect(page.getByRole('button', { name: 'Restore a license' })).toBeVisible();
+  await page.goto('/map');
+  await page.getByRole('button', { name: 'Map settings' }).click();
+  await expect(page.getByRole('link', { name: 'Buy the season keeper' })).toHaveAttribute('href', 'https://api.sociobot.in/api/v1/products/garden-care-map/checkout');
 });
 
 test('static deployment returns real 404s and caches versioned assets', async () => {
