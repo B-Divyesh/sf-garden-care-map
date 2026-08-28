@@ -1,0 +1,62 @@
+[
+  {
+    "url": "https://api.sociobot.in/api/v1/products/garden-care-map/checkout",
+    "status": 404,
+    "location": null
+  },
+  {
+    "url": "https://garden-care-map.sociobot.in/",
+    "status": 200,
+    "location": null
+  },
+  {
+    "url": "https://garden-care-map.sociobot.in/#main",
+    "status": 200,
+    "location": null
+  },
+  {
+    "url": "https://garden-care-map.sociobot.in/demo",
+    "status": 200,
+    "location": null
+  },
+  {
+    "url": "https://garden-care-map.sociobot.in/demo#main",
+    "status": 200,
+    "location": null
+  },
+  {
+    "url": "https://garden-care-map.sociobot.in/map",
+    "status": 200,
+    "location": null
+  },
+  {
+    "url": "https://garden-care-map.sociobot.in/map#main",
+    "status": 200,
+    "location": null
+  },
+  {
+    "url": "https://garden-care-map.sociobot.in/privacy",
+    "status": 200,
+    "location": null
+  },
+  {
+    "url": "https://garden-care-map.sociobot.in/privacy#main",
+    "status": 200,
+    "location": null
+  },
+  {
+    "url": "https://garden-care-map.sociobot.in/terms",
+    "status": 200,
+    "location": null
+  },
+  {
+    "url": "https://garden-care-map.sociobot.in/terms#main",
+    "status": 200,
+    "location": null
+  },
+  {
+    "url": "https://sociobot.in/",
+    "status": 200,
+    "location": null
+  }
+]

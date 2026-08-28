@@ -1,0 +1,74 @@
+[
+  {
+    "path": "/",
+    "scheme": "light",
+    "violations": 0,
+    "seriousCritical": []
+  },
+  {
+    "path": "/demo",
+    "scheme": "light",
+    "violations": 1,
+    "seriousCritical": []
+  },
+  {
+    "path": "/map",
+    "scheme": "light",
+    "violations": 1,
+    "seriousCritical": []
+  },
+  {
+    "path": "/privacy",
+    "scheme": "light",
+    "violations": 0,
+    "seriousCritical": []
+  },
+  {
+    "path": "/terms",
+    "scheme": "light",
+    "violations": 0,
+    "seriousCritical": []
+  },
+  {
+    "path": "/missing-page",
+    "scheme": "light",
+    "violations": 0,
+    "seriousCritical": []
+  },
+  {
+    "path": "/",
+    "scheme": "dark",
+    "violations": 0,
+    "seriousCritical": []
+  },
+  {
+    "path": "/demo",
+    "scheme": "dark",
+    "violations": 1,
+    "seriousCritical": []
+  },
+  {
+    "path": "/map",
+    "scheme": "dark",
+    "violations": 1,
+    "seriousCritical": []
+  },
+  {
+    "path": "/privacy",
+    "scheme": "dark",
+    "violations": 0,
+    "seriousCritical": []
+  },
+  {
+    "path": "/terms",
+    "scheme": "dark",
+    "violations": 0,
+    "seriousCritical": []
+  },
+  {
+    "path": "/missing-page",
+    "scheme": "dark",
+    "violations": 0,
+    "seriousCritical": []
+  }
+]

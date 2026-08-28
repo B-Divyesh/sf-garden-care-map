@@ -1,43 +1,44 @@
-# Garden Care Map — repair handoff
+# Garden Care Map — independent verification handoff
 
 ## Decision
 
-**Repository repair complete; release remains blocked by external billing registration.** The app again presents the researched $12 one-time Season Keeper tier, preserves its hosted Sociobot checkout and token-restore flow, and adds the missing claim coverage. At 2026-08-28 16:35 UTC, both production and pilot checkout endpoints for `garden-care-map` still returned HTTP 404 with `{"error":"enabled factory product","status":404}`. The required `fleet/new-paid-product.sh` registration helper is not present in this worker, and repository rules prohibit changing billing infrastructure. Do not release the paid tier until the factory registers/enables this slug and a real hosted checkout redirect is verified.
+**FAIL — do not release candidate `256bc038e441d0d94e419fce1cadc061b04e5590`.** The deployment at https://garden-care-map.sociobot.in is byte-identical to the candidate, but three release-blocking defects remain: the visible $12 checkout returns HTTP 404, malformed import data can be persisted and blank the app on reload, and core mobile map targets are below 44 px.
 
-## Repairs
+The detailed report is `.factory/verification-3.md`. No product code was modified.
 
-- Restored the approved Season Keeper offer: **$12 one-time**, named season snapshots, Sociobot/Dodo merchant and refund terms, a hosted checkout link, and license restoration. URL token capture, optimistic cached unlock, daily verification, and the no-gated-core behavior remain unchanged.
-- Added the missing claims and isolated regression tests:
-  - `free-core-tools`: a no-license demo can add a bed and download garden JSON and care CSV.
-  - `json-export`: the downloaded demo export contains its name, four beds, five plants, three notes, and four water lines.
-  - `local-note-photo`: a small attached image persists after reload and sample-map work contacts only the product origin.
-  - `season-keeper-checkout`: both the stated $12 price and the exact hosted checkout target are covered on landing and map settings.
-- Updated the README and landing copy audit to match the restored one-time offer. The researched brief was not changed.
+## Verification performed
 
-## Verification evidence
+- Installed from `package-lock.json`; ran every claims command separately, the full 32-test suite, typecheck, lint, and exact production build.
+- Re-ran the full browser suite against production.
+- Exercised representative care, mapping, irrigation, unit, export/import, demo, photo, invalid-input, persistence, privacy, keyboard, reduced-motion, offline, and update paths.
+- Checked desktop and 390 × 844 mobile, light/dark axe scans, touch-target dimensions, console/page errors, outbound origins, links, headers, caching, route status, bundle sizes, Lighthouse, manifest/service worker, deployment hashes, billing availability, and API rate limiting.
 
-Run on 2026-08-28 from a clean `npm ci` (133 packages, 0 vulnerabilities):
+## Key evidence
 
-- `npm run typecheck`: pass.
-- `npm run lint`: pass.
-- `npm run build`: pass. `dist/index.html` is 51.25 kB / 16.40 kB gzip at the static-site root.
-- Browser suite: Chromium 30/30 pass and the 390 × 844 mobile project 2/2 pass. Coverage includes desktop/mobile layout, keyboard placement, both light/dark axe scans across six routes, offline reload, installed-update notice, privacy interception, demo discard, and license fixture restore.
-- Every exact command in `.factory/claims.json` was run separately: 11/11 pass.
-- `/opt/fleet/lib/verify-url.sh http://127.0.0.1:4173/ .factory/evidence/repair-2-local`: pass. It recorded no console/page errors; title, `lang`, one heading, `main`, and all image alt attributes passed.
-- Lighthouse mobile against the local production preview reported performance 98 and accessibility 100; LCP 2.3 s, CLS 0, and total blocking time 0 ms. The report is at `.factory/evidence/repair-2-local/lighthouse.json` (the final screenshot artifact reported a Chromium `TARGET_CRASHED` warning after audit collection).
-- Production and pilot `GET /api/v1/products/garden-care-map/checkout`: both remain HTTP 404, so a real paid checkout and purchase-return test could not be truthfully completed in this repository worker.
+- Checkout: HTTP 404 with `{"error":"enabled factory product","status":404}`.
+- Malformed import: persisted `[null]` bed; next reload has no main/heading and throws `Cannot read properties of null (reading 'id')`.
+- Mobile: demo actions 32 px high; plant items 28.3 px high; a water segment 7.4 px high.
+- Save race: 1 of 5 immediate-reload trials lost the submitted care note; 3 of 3 confirmed-save controls persisted.
+- Claims: 11/11 pass after `npm ci`, though the checkout claim test only checks its URL and misses the live 404.
+- Local and live suites: 32/32 pass. Typecheck, lint, and build pass.
+- Axe: zero serious/critical; one moderate nested-landmark issue on map routes.
+- Lighthouse mobile: performance 99, accessibility 100, LCP 1.814 s, CLS 0, TBT 2 ms.
+- Rate limiting: 40-request burst yielded 30 × 200 and 10 × 429; all 429 responses had `Retry-After: 3`.
+- Candidate/live `index.html` SHA-256: `5d16e30eee707eca6e72a75fbebc0355c255523f4bf1ac906a0fb487a8d0e50e`.
 
-## Deployment and live checks
+## How to re-verify
 
-- Repair commit `16d9e86` was pushed to `origin/main` and deployed with `/opt/fleet/lib/deploy-static.sh garden-care-map /work/repo/dist`.
-- Azure Static Web Apps deployment `65401fd6-37ae-4608-96c4-f870444f22ab` completed successfully. The custom domain returned HTTPS 200.
-- Local `dist/index.html` and live `/` are byte-identical: SHA-256 `5d16e30eee707eca6e72a75fbebc0355c255523f4bf1ac906a0fb487a8d0e50e` (51,252 bytes).
-- Live `/`, `/demo`, `/map`, `/privacy`, and `/terms` return 200. `/missing-page` returns the styled document with HTTP 404.
-- The live shell uses `Cache-Control: no-cache`; the 58,388-byte versioned mobile hero uses `Cache-Control: public, max-age=31536000, immutable`. Live headers include HSTS, nosniff, strict-origin referrer policy, the stated Permissions-Policy, and the self-restricted CSP.
-- `/opt/fleet/lib/verify-url.sh https://garden-care-map.sociobot.in/ .factory/evidence/repair-2-live`: pass in 776 ms with no page or console errors. The title, `lang`, one heading, main landmark, and all image alt attributes passed.
-- Full deployed browser verification: Chromium 30/30 and the 390 × 844 mobile project 2/2 pass, including offline reload, the update notice, keyboard placement, privacy interception, and serious/critical axe checks in light and dark schemes.
-- The live checkout endpoint still returns HTTP 404 with `{"error":"enabled factory product","status":404}`. This is a billing-registration failure outside the static artifact and remains release-blocking.
+```sh
+npm ci
+npm test
+npm run typecheck
+npm run lint
+npm run build
+PLAYWRIGHT_BASE_URL=https://garden-care-map.sociobot.in npx playwright test
+```
 
-## Required external next step
+Then follow the defect reproductions in `.factory/verification-3.md`, especially the real checkout request and malformed-import reload.
 
-Register and enable the `garden-care-map` $12 one-time product through the factory billing workflow, then verify that `https://api.sociobot.in/api/v1/products/garden-care-map/checkout` redirects to hosted checkout and complete one staged purchase/return-license restore test. No code or data migration is needed after that registration.
+## Required next work
+
+Enable the Sociobot product and prove the real checkout; validate imported objects before saving and recover corrupt storage; enlarge mobile hit areas; and make the IndexedDB saving state explicit. Re-run independent verification after all four are complete.

@@ -1,0 +1,125 @@
+{
+  "normal": {
+    "firstRead": {
+      "h1": "Map beds, plants, care, and water",
+      "audience": "For small-space gardeners who need every planting and care note tied to its real place.",
+      "primary": "Try it with sample data"
+    },
+    "noteLength": 240,
+    "boundaryPersisted": false,
+    "errors": [],
+    "origins": [
+      "https://garden-care-map.sociobot.in"
+    ]
+  },
+  "mobile": {
+    "metrics": {
+      "overflow": 0,
+      "sample": [
+        {
+          "selector": ".demo-banner [data-action=\"reset-demo\"]",
+          "width": 101.4,
+          "height": 32
+        },
+        {
+          "selector": "[data-id=\"plant-basil\"] circle",
+          "width": 19.3,
+          "height": 19.3
+        },
+        {
+          "selector": ".water-mark",
+          "width": 100.4,
+          "height": 74.4
+        },
+        {
+          "selector": "footer a",
+          "width": 47.1,
+          "height": 44
+        }
+      ],
+      "under44": [
+        {
+          "tag": "BUTTON",
+          "label": "Reset demo",
+          "width": 101.4,
+          "height": 32
+        },
+        {
+          "tag": "BUTTON",
+          "label": "Start for real",
+          "width": 110.8,
+          "height": 32
+        },
+        {
+          "tag": "line",
+          "label": "Water line, 4.4 m",
+          "width": 18.6,
+          "height": 163.7
+        },
+        {
+          "tag": "line",
+          "label": "Water line, 4.5 m",
+          "width": 167.4,
+          "height": 7.4
+        },
+        {
+          "tag": "g",
+          "label": "Basil, Genovese",
+          "width": 54,
+          "height": 28.3
+        },
+        {
+          "tag": "g",
+          "label": "Thyme, Common",
+          "width": 64.8,
+          "height": 28.3
+        },
+        {
+          "tag": "g",
+          "label": "Lettuce, Little Gem",
+          "width": 69.7,
+          "height": 28.3
+        },
+        {
+          "tag": "g",
+          "label": "Tomato, Gardener’s Delight",
+          "width": 68.2,
+          "height": 28.3
+        },
+        {
+          "tag": "g",
+          "label": "Bean, Blue Lake",
+          "width": 55.2,
+          "height": 28.3
+        },
+        {
+          "tag": "A",
+          "label": "Terms",
+          "width": 38.3,
+          "height": 44
+        }
+      ],
+      "animationDuration": "1e-05s"
+    },
+    "errors": []
+  },
+  "validImport": {
+    "heading": "Courtyard kitchen garden",
+    "beds": 4,
+    "errors": []
+  },
+  "malformedImport": {
+    "afterImport": {
+      "body": "Skip to main content\nGarden Care Map\nDemo\nMy map\nPrivacy\n\nSAVED ON THIS DEVICE\n\nMy garden\nSaved locally\nOnline\n↖\nSelect\n▧\nAdd bed\n✣\nAdd plant\n⌁\nDraw water line\nChoose a tool, then tap the map. Keyboard: arrows move the marker; Enter places it.\n⌇\nYour map is ready for its first bed\n\nBeds, plants, wat",
+      "toast": "Import failed. Choose a Garden Care Map JSON export.",
+      "errors": []
+    },
+    "afterReload": {
+      "h1Count": 0,
+      "mainText": null,
+      "errors": [
+        "Cannot read properties of null (reading 'id')"
+      ]
+    }
+  }
+}

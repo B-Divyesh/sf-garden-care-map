@@ -1,0 +1,32 @@
+{
+  "invalidRecovery": {
+    "blank": {
+      "valid": false,
+      "validationMessage": "Please fill out this field.",
+      "notesBefore": 1,
+      "notesAfter": 1
+    },
+    "oversized": {
+      "toast": "The photo is over 1.5 MB. Choose a smaller photo.",
+      "notesAfter": 1
+    },
+    "syntaxImport": {
+      "toast": "Import failed. Choose a Garden Care Map JSON export.",
+      "heading": "Courtyard kitchen garden",
+      "beds": 4
+    },
+    "errors": []
+  },
+  "immediateReload": [
+    1,
+    1,
+    1,
+    0,
+    1
+  ],
+  "confirmedSave": [
+    1,
+    1,
+    1
+  ]
+}
