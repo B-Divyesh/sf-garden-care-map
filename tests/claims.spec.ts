@@ -31,6 +31,8 @@ test('@claim:demo-isolation demo data never changes the real map', async ({ page
   await page.getByRole('button', { name: 'Start for real' }).click();
   await expect(page.getByRole('heading', { name: 'My garden' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Your map is ready for its first bed' })).toBeVisible();
+  await page.goto('/demo');
+  await expect(page.locator('[data-kind="bed"]')).toHaveCount(4);
 });
 
 test('@claim:care-persistence saves plant care across reloads', async ({ page }) => {

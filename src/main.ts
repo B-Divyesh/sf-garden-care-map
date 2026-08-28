@@ -1,18 +1,20 @@
 import './style.css';
 import type { GardenData, Plant, Tool } from './types';
-import { clearRealGarden, loadGarden, resetDemo, saveGarden } from './storage';
+import { clearDemoGarden, clearRealGarden, loadGarden, resetDemo, saveGarden } from './storage';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 const PRODUCT = 'garden-care-map';
-const BUILD = 'v1.0.0';
+const BUILD = 'v1.0.1';
 const BILLING = 'https://api.sociobot.in/api/v1/products/garden-care-map';
+const ASSET_VERSION = '20260828';
 let garden: GardenData;
 let isDemo = false;
 let tool: Tool = 'select';
 let selectedType: 'bed' | 'plant' | 'water' | null = null;
 let selectedId: string | null = null;
 let waterStart: { x: number; y: number } | null = null;
-let keyboardCursor = { x: 50, y: 50 };
+const keyboardCursor = { x: 50, y: 50 };
+let hasRenderedRoute = false;
 
 const uid = (prefix: string) => `${prefix}-${crypto.randomUUID()}`;
 const escapeHtml = (value: unknown) => String(value ?? '').replace(/[&<>'"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[c]!);
@@ -28,7 +30,7 @@ function navigate(path: string) {
 }
 
 function shell(content: string, options: { appPage?: boolean; title: string }) {
-  const demoBanner = isDemo ? `<aside class="demo-banner" aria-label="Demo mode"><strong>Demo — sample data, nothing is saved</strong><span class="demo-actions"><button class="text-button" data-action="reset-demo">Reset demo</button><button class="text-button" data-route="/map">Start for real</button></span></aside>` : '';
+  const demoBanner = isDemo ? `<aside class="demo-banner" aria-label="Demo mode"><strong>Demo — sample data, nothing is saved</strong><span class="demo-actions"><button class="text-button" data-action="reset-demo">Reset demo</button><button class="text-button" data-action="start-real">Start for real</button></span></aside>` : '';
   return `
     <a class="skip-link" href="#main">Skip to main content</a>
     ${demoBanner}
@@ -78,13 +80,13 @@ function renderHome() {
         <ul class="plain-facts" aria-label="Key facts">
           <li><strong>Private</strong><span>Garden data stays in this browser.</span></li>
           <li><strong>Offline</strong><span>Reopens after your first visit.</span></li>
-          <li><strong>Free core</strong><span>Season archive costs $12 once.</span></li>
+          <li><strong>Free core</strong><span>Every mapping and export tool is free.</span></li>
         </ul>
       </div>
       <figure class="hero-art">
         <picture>
-          <source type="image/webp" srcset="/assets/garden-field-guide-640.webp 640w, /assets/garden-field-guide-1024.webp 1024w" sizes="(max-width: 780px) 92vw, 54vw" />
-          <img src="/assets/garden-field-guide-1024.webp" width="1024" height="683" fetchpriority="high" alt="A painted field-guide view of raised beds, pots, herbs, and a red irrigation hose." />
+          <source type="image/webp" srcset="/assets/garden-field-guide-640.webp?v=${ASSET_VERSION} 640w, /assets/garden-field-guide-1024.webp?v=${ASSET_VERSION} 1024w" sizes="(max-width: 780px) 92vw, 54vw" />
+          <img src="/assets/garden-field-guide-1024.webp?v=${ASSET_VERSION}" width="1024" height="683" fetchpriority="high" alt="A painted field-guide view of raised beds, pots, herbs, and a red irrigation hose." />
         </picture>
         <figcaption>Keep the care record on the same map as the garden.</figcaption>
       </figure>
@@ -102,8 +104,8 @@ function renderHome() {
       <p>This tool records what you plant and do. It does not identify plants, diagnose disease, predict weather, or recommend pesticides.</p>
     </section>
     <section class="paid" aria-labelledby="paid-title">
-      <div><p class="eyebrow">Optional season keeper</p><h2 id="paid-title">Keep past seasons for $12 once</h2><p>The free map includes every core tool and data export. A one-time purchase adds named season snapshots on this device.</p></div>
-      <div class="price-sheet"><p><strong>$12</strong> one-time purchase</p><a class="primary button-link" href="${BILLING}/checkout">Buy the season keeper <span class="sr-only">through Sociobot checkout</span></a><button class="secondary" data-action="show-license">Restore a license</button><p class="fine">Sociobot and Dodo are the merchant of record. Refunds are handled there.</p></div>
+      <div><p class="eyebrow">Optional season keeper</p><h2 id="paid-title">Keep past seasons on this device</h2><p>An active season keeper license adds named snapshots. Every mapping and export tool stays free.</p></div>
+      <div class="price-sheet"><p><strong>Sales paused</strong></p><p>The season keeper is not for sale while checkout is unavailable.</p><button class="secondary" data-action="show-license">Restore a license</button><p class="fine">Already have a license? You can keep using it on this device.</p></div>
     </section>
     <section id="license-panel" class="license-panel" hidden aria-labelledby="license-title"><h2 id="license-title">Restore your season keeper</h2><form id="license-form"><label for="license">License token</label><input id="license" name="license" required autocomplete="off" /><button class="primary">Verify license</button><p id="license-status" aria-live="polite"></p></form></section>
   `, { title: 'Home' });
@@ -215,7 +217,7 @@ function renderInspector() {
 
 function renderArchivePanel() {
   const unlocked = licenseIsActive();
-  return `<div class="archive-panel"><h3>Season archive</h3>${unlocked ? `<p>Save a named snapshot before you clear or replant the map.</p><form id="archive-form"><label for="archive-name">Season name</label><input id="archive-name" name="name" required maxlength="40" placeholder="Summer 2026" /><button class="secondary">Save season snapshot</button></form>${garden.archives.length ? `<ul>${garden.archives.map(a => `<li><strong>${escapeHtml(a.name)}</strong><span>${a.counts.beds} beds · ${a.counts.plants} plants · ${a.counts.notes} notes</span><button class="small-link" data-export-archive="${a.id}">Download snapshot</button></li>`).join('')}</ul>` : ''}` : `<p>A $12 one-time purchase adds named season snapshots. The map and exports stay free.</p><a href="${BILLING}/checkout">Buy the season keeper</a><form id="license-form"><label for="license">Have a license? Paste it here</label><input id="license" name="license" required autocomplete="off" /><button class="secondary">Verify license</button><p id="license-status" aria-live="polite"></p></form>`}</div>`;
+  return `<div class="archive-panel"><h3>Season archive</h3>${unlocked ? `<p>Save a named snapshot before you clear or replant the map.</p><form id="archive-form"><label for="archive-name">Season name</label><input id="archive-name" name="name" required maxlength="40" placeholder="Summer 2026" /><button class="secondary">Save season snapshot</button></form>${garden.archives.length ? `<ul>${garden.archives.map(a => `<li><strong>${escapeHtml(a.name)}</strong><span>${a.counts.beds} beds · ${a.counts.plants} plants · ${a.counts.notes} notes</span><button class="small-link" data-export-archive="${a.id}">Download snapshot</button></li>`).join('')}</ul>` : ''}` : `<p>Season keeper sales are paused while checkout is unavailable. The map and exports stay free.</p><form id="license-form"><label for="license">Have a license? Paste it here</label><input id="license" name="license" required autocomplete="off" /><button class="secondary">Verify license</button><p id="license-status" aria-live="polite"></p></form>`}</div>`;
 }
 
 function renderLegal(kind: 'privacy'|'terms') {
@@ -225,13 +227,13 @@ function renderLegal(kind: 'privacy'|'terms') {
   const body = privacy ? `
     <h1 tabindex="-1">Your garden data stays with you</h1><p class="lede">Garden Care Map stores maps, notes, photos, settings, and licenses in your browser.</p>
     <h2>What this site stores</h2><p>Your garden data uses IndexedDB. Your license token and last verification use local storage. Demo data uses a separate key and never reads your real map.</p>
-    <h2>When data leaves this device</h2><p>Normal map use sends no garden data to us. Buying or verifying a license opens or contacts Sociobot. Its payment provider handles checkout details.</p>
+    <h2>When data leaves this device</h2><p>Normal map use sends no garden data to us. Verifying a license contacts Sociobot. No garden data is included.</p>
     <h2>Your choices</h2><p>You can export your garden at any time. Clear the map in Map settings, or remove this site’s browser data. Uninstalling the app does not always remove browser data.</p>
     <h2>Contact</h2><p>Email <a href="mailto:privacy@sociobot.in">privacy@sociobot.in</a> with privacy questions.</p>` : `
     <h1 tabindex="-1">Terms for using Garden Care Map</h1><p class="lede">Use this tool to keep your own garden records. These terms apply from 28 August 2026.</p>
     <h2>The tool</h2><p>Garden Care Map records information you enter. It does not give agronomic, medical, pesticide, or safety advice. Check trusted local guidance before acting.</p>
     <h2>Your data</h2><p>You are responsible for your data and backups. Use the export tools before clearing browser storage or moving devices.</p>
-    <h2>Purchase</h2><p>The $12 season keeper is a one-time license purchase. Sociobot and Dodo are the merchant of record. Refunds are handled through the merchant and revoke the license.</p>
+    <h2>Season keeper</h2><p>Season keeper sales are paused. Existing active licenses still add named season snapshots.</p>
     <h2>Availability</h2><p>The software is provided as is, without a promise that it fits every garden or device. Liability is limited where the law allows.</p>
     <h2>Contact</h2><p>Email <a href="mailto:support@sociobot.in">support@sociobot.in</a> with terms or purchase questions.</p>`;
   app.innerHTML = shell(`<article class="prose-page">${body}</article>`, { title: privacy ? 'Privacy' : 'Terms' });
@@ -257,7 +259,11 @@ function bindCommon() {
     if (input) await verifyLicense(input, true);
   });
   document.querySelector('[data-action="reset-demo"]')?.addEventListener('click', async () => { garden = await resetDemo(); renderMapShell(); announce('Demo reset to its original sample.'); });
-  focusMainHeading();
+  document.querySelector('[data-action="start-real"]')?.addEventListener('click', async () => {
+    await clearDemoGarden();
+    selectedId = null; selectedType = null; tool = 'select'; waterStart = null;
+    navigate('/map');
+  });
 }
 
 function bindMap() {
@@ -402,14 +408,14 @@ function licenseIsActive() { try { const cached=JSON.parse(localStorage.getItem(
 async function verifyLicense(token: string, showStatus=false) {
   localStorage.setItem(`sb_license:${PRODUCT}`, token);
   const status=document.querySelector<HTMLElement>('#license-status'); if(status) status.textContent='Checking the license…';
-  try { const response=await fetch(`${BILLING}/verify?license=${encodeURIComponent(token)}`); const result=await response.json(); localStorage.setItem(`sb_license_verdict:${PRODUCT}`,JSON.stringify({valid:result.valid,checkedAt:Date.now()})); if(status) status.textContent=result.valid?'License active. Season snapshots are ready.':'This license is not active. Check the token or buy a new license.'; if(showStatus&&currentPath()==='/map') renderMapShell(); }
+  try { const response=await fetch(`${BILLING}/verify?license=${encodeURIComponent(token)}`); const result=await response.json(); localStorage.setItem(`sb_license_verdict:${PRODUCT}`,JSON.stringify({valid:result.valid,checkedAt:Date.now()})); if(status) status.textContent=result.valid?'License active. Season snapshots are ready.':'This license is not active. Check the token and try again.'; if(showStatus&&currentPath()==='/map') renderMapShell(); }
   catch { if(status) status.textContent='The license could not be checked. Connect to the internet and try again.'; }
 }
 
 async function handleLicense() {
   const params=new URLSearchParams(location.search); const token=params.get('license');
   if(token){ localStorage.setItem(`sb_license:${PRODUCT}`,token);params.delete('license');history.replaceState({},'',`${location.pathname}${params.size?`?${params}`:''}`);await verifyLicense(token);return; }
-  const saved=localStorage.getItem(`sb_license:${PRODUCT}`); let cache:{valid:boolean;checkedAt:number}|null=null; try{cache=JSON.parse(localStorage.getItem(`sb_license_verdict:${PRODUCT}`)||'null');}catch{}
+  const saved=localStorage.getItem(`sb_license:${PRODUCT}`); let cache:{valid:boolean;checkedAt:number}|null=null; try{cache=JSON.parse(localStorage.getItem(`sb_license_verdict:${PRODUCT}`)||'null');}catch{cache=null;}
   if(saved&&(!cache||Date.now()-cache.checkedAt>86_400_000)&&navigator.onLine) void verifyLicense(saved);
 }
 
@@ -424,6 +430,8 @@ async function renderRoute() {
   else if(path==='/map') await renderMap(false);
   else if(path==='/privacy'||path==='/terms') renderLegal(path.slice(1) as 'privacy'|'terms');
   else render404();
+  if (hasRenderedRoute) focusMainHeading();
+  hasRenderedRoute = true;
 }
 
 addEventListener('popstate',renderRoute);

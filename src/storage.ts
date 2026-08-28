@@ -48,6 +48,17 @@ export async function resetDemo(): Promise<GardenData> {
   return data;
 }
 
+export async function clearDemoGarden(): Promise<void> {
+  const db = await openDb();
+  await new Promise<void>((resolve, reject) => {
+    const tx = db.transaction(STORE, 'readwrite');
+    tx.objectStore(STORE).delete('demo:garden');
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
+  db.close();
+}
+
 export async function clearRealGarden(): Promise<GardenData> {
   const data = emptyGarden();
   await saveGarden(data, false);
