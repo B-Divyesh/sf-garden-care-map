@@ -1,0 +1,8 @@
+{
+  "slug": "garden-care-map",
+  "title": "Garden Care Map",
+  "summary": "Map beds, plants, care notes, and irrigation in one private offline record.",
+  "artifact_class": "pwa-offline",
+  "monetization": "one-time",
+  "success_measure": "70% of pilot gardeners consult or update the same map weekly for one growing month."
+}

@@ -1,0 +1,9 @@
+[
+  {"id":"offline-reload","claim":"Reopens offline after the first visit","where":"landing facts, README","test":"npm test -- --grep @claim:offline-reload","sandbox":"fresh /demo; wait for service worker, set browser offline, reload"},
+  {"id":"local-private","claim":"Garden data stays in this browser during normal map use","where":"landing facts, privacy, README","test":"npm test -- --grep @claim:local-private","sandbox":"fresh /demo; save a care note while recording every network origin"},
+  {"id":"demo-isolation","claim":"Demo changes stay separate from the real map","where":"landing action, demo banner, README","test":"npm test -- --grep @claim:demo-isolation","sandbox":"fresh browser; edit /demo, then open /map and assert empty real data"},
+  {"id":"care-persistence","claim":"Care notes persist across reloads","where":"product interface, README","test":"npm test -- --grep @claim:care-persistence","sandbox":"fresh /demo; add a plant note, reload, and reopen its record"},
+  {"id":"csv-export","claim":"Exports every care note as CSV","where":"map toolbar, README","test":"npm test -- --grep @claim:csv-export","sandbox":"fresh /demo; download CSV and assert header plus one row per sample note"},
+  {"id":"water-total","claim":"Measures irrigation segments and totals their length in metric or imperial units","where":"landing, map interface, README","test":"npm test -- --grep @claim:water-total","sandbox":"fresh /demo; assert meters, switch units, and assert feet"},
+  {"id":"license-verify","claim":"A valid one-time license enables named season snapshots","where":"paid section, settings, README","test":"npm test -- --grep @claim:license-verify","sandbox":"fresh /map with return URL token and a recorded valid verification response"}
+]
