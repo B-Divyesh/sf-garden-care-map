@@ -24,6 +24,8 @@ HTTP/2 404
 {"error":"enabled factory product","status":404}
 ```
 
+The pilot endpoint returned the same HTTP 404 and body in a separate fresh request.
+
 The visible one-time purchase cannot start. This fails the researched monetization contract and the paid-unlock end-to-end requirement. It is the same external billing-registration failure previously reported; fresh evidence shows it has not cleared.
 
 The `season-keeper-checkout` claim test passes only because it checks the anchor's `href`. It does not follow the link or assert a hosted checkout response, so it does not prove the stated claim that checkout opens. The independent link crawl records the 404 in [link-check.json](evidence/verification-3-live/link-check.json).
@@ -67,7 +69,17 @@ The plant and irrigation targets are core map controls for a mobile gardening to
 
 The interface always says **Saved locally**. Saving is asynchronous, but it never exposes a pending state or disables navigation. In five fresh live trials that clicked **Save care note** and immediately reloaded, one note was lost. All three controls that waited until the saved note appeared before reloading persisted correctly.
 
+A separate canonical local `npm test` run also failed this same claim once (31/32); a second full run and 10 focused repeats passed. This independently confirms a nondeterministic boundary rather than a stable test failure.
+
 This is a narrow race, but it concerns the product's main personal record. Evidence is in [invalid-recovery.json](evidence/verification-3-live/invalid-recovery.json).
+
+### Medium — invalid license restore hides its recovery message
+
+In live map settings, an invalid token received HTTP 200 with `{valid:false, reason:"invalid"}`. The app immediately re-rendered and hid settings, leaving no visible “not active” message. The user cannot tell whether the token was rejected or what to do next. The status text is replaced by the map re-render at `src/main.ts:411`.
+
+### Medium — 200% mobile text sizing causes header overflow
+
+At a 195 CSS-pixel viewport, equivalent to 200% zoom on a 390 px phone, both `/` and `/demo` measured `scrollWidth=206` with `innerWidth=195`. The header navigation extended 11 px beyond the viewport and clipped part of **Privacy**. The normal 390 px layout does not overflow.
 
 ### Low — axe reports a moderate landmark issue on the map routes
 
@@ -145,6 +157,7 @@ The adjacent copy says the action opens a complete garden and keeps demo changes
 ### Performance, response policy, and deployment identity
 
 - Fresh Lighthouse mobile report: performance **99**, accessibility **100**, LCP **1.814 s**, CLS **0**, TBT **2 ms**. Lighthouse wrote the complete report before Chromium emitted a post-audit tab-crash warning. See [lighthouse.json](evidence/verification-3-live/lighthouse.json).
+- Three additional identical live Lighthouse runs scored performance **86, 93, and 90** (median **90**), with LCP 1.7–1.8 s, CLS 0, and accessibility/best practices/SEO 100. This meets the median threshold but shows synthetic TBT variance.
 - Bundle measurements: inline JS 33,431 bytes / 11,533 gzip; CSS 16,043 bytes / 4,640 gzip; no fonts; mobile hero 58,388 bytes. All stated budgets pass.
 - Root HTML and service worker are byte-identical between candidate build and live deployment:
   - `dist/index.html`: SHA-256 `5d16e30eee707eca6e72a75fbebc0355c255523f4bf1ac906a0fb487a8d0e50e`, 51,252 bytes.
@@ -160,4 +173,5 @@ The adjacent copy says the action opens a complete garden and keeps demo changes
 2. Validate the full imported schema before assignment or persistence. Preserve the current garden on every import error and provide an in-app recovery path for already-corrupt storage.
 3. Add 44 × 44 hit areas around plant and irrigation marks and restore 44 px demo-banner actions without changing the visual marks.
 4. Show a real saving state and prevent route/reload loss until IndexedDB commits.
-5. Replace or restructure the nested complementary landmark to clear the remaining moderate axe issue.
+5. Keep invalid-license feedback visible and announced; remove header overflow at 200% text size.
+6. Replace or restructure the nested complementary landmark to clear the remaining moderate axe issue.
