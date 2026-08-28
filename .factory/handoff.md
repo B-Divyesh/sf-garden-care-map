@@ -29,7 +29,14 @@ Run on 2026-08-28 from a clean `npm ci` (133 packages, 0 vulnerabilities):
 
 ## Deployment and live checks
 
-Pending the repair commit push and static deployment. Update this section with the deployment identifier, live hash, route/header checks, live browser smoke check, and the checkout result after deployment.
+- Repair commit `16d9e86` was pushed to `origin/main` and deployed with `/opt/fleet/lib/deploy-static.sh garden-care-map /work/repo/dist`.
+- Azure Static Web Apps deployment `65401fd6-37ae-4608-96c4-f870444f22ab` completed successfully. The custom domain returned HTTPS 200.
+- Local `dist/index.html` and live `/` are byte-identical: SHA-256 `5d16e30eee707eca6e72a75fbebc0355c255523f4bf1ac906a0fb487a8d0e50e` (51,252 bytes).
+- Live `/`, `/demo`, `/map`, `/privacy`, and `/terms` return 200. `/missing-page` returns the styled document with HTTP 404.
+- The live shell uses `Cache-Control: no-cache`; the 58,388-byte versioned mobile hero uses `Cache-Control: public, max-age=31536000, immutable`. Live headers include HSTS, nosniff, strict-origin referrer policy, the stated Permissions-Policy, and the self-restricted CSP.
+- `/opt/fleet/lib/verify-url.sh https://garden-care-map.sociobot.in/ .factory/evidence/repair-2-live`: pass in 776 ms with no page or console errors. The title, `lang`, one heading, main landmark, and all image alt attributes passed.
+- Full deployed browser verification: Chromium 30/30 and the 390 × 844 mobile project 2/2 pass, including offline reload, the update notice, keyboard placement, privacy interception, and serious/critical axe checks in light and dark schemes.
+- The live checkout endpoint still returns HTTP 404 with `{"error":"enabled factory product","status":404}`. This is a billing-registration failure outside the static artifact and remains release-blocking.
 
 ## Required external next step
 
