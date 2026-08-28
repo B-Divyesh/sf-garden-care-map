@@ -27,3 +27,27 @@ test('asset references carry a release version', async ({ page }) => {
   const manifest = JSON.parse(await readFile('public/manifest.webmanifest', 'utf8'));
   expect(manifest.icons.every((icon: { src: string }) => /\?v=\d{8}$/.test(icon.src))).toBe(true);
 });
+
+test('an installed service-worker update is announced', async ({ page }) => {
+  await page.addInitScript(() => {
+    const worker = new EventTarget() as EventTarget & { state: string };
+    worker.state = 'installing';
+    const registration = new EventTarget() as EventTarget & { installing: typeof worker };
+    registration.installing = worker;
+    const serviceWorker = {
+      controller: {},
+      ready: Promise.resolve(registration),
+      register: () => Promise.resolve(registration)
+    };
+    Object.defineProperty(navigator, 'serviceWorker', { configurable: true, value: serviceWorker });
+    (window as unknown as { installTestUpdate: () => void }).installTestUpdate = () => {
+      registration.dispatchEvent(new Event('updatefound'));
+      worker.state = 'installed';
+      worker.dispatchEvent(new Event('statechange'));
+    };
+  });
+  await page.goto('/');
+  await page.evaluate(() => (window as unknown as { installTestUpdate: () => void }).installTestUpdate());
+  await expect(page.locator('#toast')).toHaveText('An update is ready. Reload to use it.');
+  await expect(page.locator('#toast')).toBeVisible();
+});
