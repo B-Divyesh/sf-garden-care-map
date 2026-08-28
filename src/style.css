@@ -148,7 +148,7 @@ button {
   color: inherit;
 }
 .demo-banner .text-button {
-  min-height: 32px;
+  min-height: 44px;
   font-weight: 700;
 }
 .hero {
@@ -646,17 +646,28 @@ h3 {
   stroke-width: 1.5;
 }
 .water-mark {
+  cursor: pointer;
+}
+.water-line {
   stroke: var(--clay);
   stroke-width: 1.2;
   stroke-linecap: round;
   stroke-dasharray: 2 1;
   animation: trace 0.22s ease-out;
-  cursor: pointer;
+  pointer-events: none;
 }
-.water-mark.selected,
-.water-mark:focus-visible {
+.water-hit-target {
+  stroke: transparent;
+  stroke-width: 12;
+  stroke-linecap: round;
+}
+.water-mark.selected .water-line,
+.water-mark:focus-visible .water-line {
   stroke: var(--mustard);
   stroke-width: 2;
+}
+.plant-hit-target {
+  fill: transparent;
 }
 .water-start {
   fill: var(--clay);
@@ -1039,6 +1050,23 @@ footer p:last-child {
   }
   footer div {
     flex-wrap: wrap;
+  }
+}
+@media (max-width: 260px) {
+  .site-header {
+    height: auto;
+    min-height: 56px;
+    gap: 4px;
+    padding-inline: 8px;
+  }
+  .wordmark span {
+    display: none;
+  }
+  .site-header nav {
+    gap: 2px;
+  }
+  .site-header nav a {
+    font-size: 12px;
   }
 }
 @media (prefers-color-scheme: dark) {

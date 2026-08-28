@@ -1,6 +1,7 @@
 import './style.css';
 import type { GardenData, Plant, Tool } from './types';
-import { clearDemoGarden, clearRealGarden, loadGarden, resetDemo, saveGarden } from './storage';
+import { clearDemoGarden, clearRealGarden, CorruptGardenError, loadGarden, recoverGarden, resetDemo, saveGarden } from './storage';
+import { isGardenData } from './schema';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 const PRODUCT = 'garden-care-map';
@@ -15,6 +16,8 @@ let selectedId: string | null = null;
 let waterStart: { x: number; y: number } | null = null;
 const keyboardCursor = { x: 50, y: 50 };
 let hasRenderedRoute = false;
+let pendingSaves = 0;
+let licenseNotice = '';
 
 const uid = (prefix: string) => `${prefix}-${crypto.randomUUID()}`;
 const escapeHtml = (value: unknown) => String(value ?? '').replace(/[&<>'"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[c]!);
@@ -127,8 +130,9 @@ async function renderMap(demo: boolean) {
   isDemo = demo;
   try {
     garden = await loadGarden(demo);
-  } catch {
-    app.innerHTML = shell(`<section class="state-page"><h1 tabindex="-1">Your map could not open</h1><p>The browser blocked local storage. Allow site data, then reload this page.</p><button class="primary" data-action="reload">Reload the map</button></section>`, { title: 'Error' });
+  } catch (error) {
+    const corrupt = error instanceof CorruptGardenError;
+    app.innerHTML = shell(`<section class="state-page"><h1 tabindex="-1">${corrupt ? 'Your saved map needs recovery' : 'Your map could not open'}</h1><p>${corrupt ? 'This saved map is not a Garden Care Map export. Reset this map to open a fresh local record.' : 'The browser blocked local storage. Allow site data, then reload this page.'}</p><button class="primary" data-action="${corrupt ? 'recover-map' : 'reload'}">${corrupt ? 'Reset this map' : 'Reload the map'}</button></section>`, { title: 'Error' });
     bindCommon();
     return;
   }
@@ -152,7 +156,7 @@ function renderMapShell() {
           ${garden.beds.length ? renderGardenSvg() : renderEmptyMap()}
           <div class="map-footer"><span>${garden.beds.length} ${garden.beds.length === 1 ? 'bed' : 'beds'} · ${garden.plants.filter(p => p.status === 'active').length} active plants</span><strong>Water lines: ${formatLength(totalWaterLength())}</strong></div>
         </div>
-        <aside class="field-notes" aria-label="Field notes">${renderInspector()}</aside>
+        <section class="field-notes" aria-label="Field notes">${renderInspector()}</section>
       </div>
       <div class="data-bar">
         <button class="secondary" data-action="export-json">Export garden</button>
@@ -188,8 +192,8 @@ function renderGardenSvg() {
     <pattern id="p3" width="8" height="8" patternUnits="userSpaceOnUse"><circle cx="4" cy="4" r="2.2" fill="none"/></pattern>
   </defs>`;
   const beds = garden.beds.map(b => `<g class="bed-mark ${selectedType === 'bed' && selectedId === b.id ? 'selected' : ''}" data-kind="bed" data-id="${b.id}" tabindex="0" role="button" aria-label="${escapeHtml(b.name)} bed"><rect x="${b.x}" y="${b.y}" width="${b.width}" height="${b.height}" rx="1" class="bed-base pattern-${b.pattern}"/><rect x="${b.x}" y="${b.y}" width="${b.width}" height="${b.height}" rx="1" fill="url(#p${b.pattern})" class="bed-pattern"/><text x="${b.x + 2}" y="${b.y + 5}">${escapeHtml(b.name)}</text></g>`).join('');
-  const lines = garden.waterLines.map(l => `<line class="water-mark ${selectedType === 'water' && selectedId === l.id ? 'selected' : ''}" data-kind="water" data-id="${l.id}" tabindex="0" role="button" aria-label="Water line, ${formatLength(lineLength(l))}" x1="${l.x1}" y1="${l.y1}" x2="${l.x2}" y2="${l.y2}" />`).join('');
-  const plants = garden.plants.filter(p => p.status === 'active').map(p => `<g class="plant-mark ${selectedType === 'plant' && selectedId === p.id ? 'selected' : ''}" data-kind="plant" data-id="${p.id}" tabindex="0" role="button" aria-label="${escapeHtml(p.name)}, ${escapeHtml(p.variety)}"><circle cx="${p.x}" cy="${p.y}" r="2.6"/><path d="M${p.x} ${p.y + 2}v-4m0 1c-2.3 0-3.2-1.4-3.2-3.2 2.1 0 3.2 1.2 3.2 3.2Zm0-1c2 0 3-1.2 3-3-2 0-3 1.1-3 3Z"/><text x="${p.x + 4}" y="${p.y + 1}">${escapeHtml(p.name)}</text></g>`).join('');
+  const lines = garden.waterLines.map(l => `<g class="water-mark ${selectedType === 'water' && selectedId === l.id ? 'selected' : ''}" data-kind="water" data-id="${l.id}" tabindex="0" role="button" aria-label="Water line, ${formatLength(lineLength(l))}"><line class="water-hit-target" x1="${l.x1}" y1="${l.y1}" x2="${l.x2}" y2="${l.y2}"/><line class="water-line" x1="${l.x1}" y1="${l.y1}" x2="${l.x2}" y2="${l.y2}"/></g>`).join('');
+  const plants = garden.plants.filter(p => p.status === 'active').map(p => `<g class="plant-mark ${selectedType === 'plant' && selectedId === p.id ? 'selected' : ''}" data-kind="plant" data-id="${p.id}" tabindex="0" role="button" aria-label="${escapeHtml(p.name)}, ${escapeHtml(p.variety)}"><rect class="plant-hit-target" x="${p.x - 6}" y="${p.y - 6}" width="12" height="12" rx="2"/><circle cx="${p.x}" cy="${p.y}" r="2.6"/><path d="M${p.x} ${p.y + 2}v-4m0 1c-2.3 0-3.2-1.4-3.2-3.2 2.1 0 3.2 1.2 3.2 3.2Zm0-1c2 0 3-1.2 3-3-2 0-3 1.1-3 3Z"/><text x="${p.x + 4}" y="${p.y + 1}">${escapeHtml(p.name)}</text></g>`).join('');
   return `<svg id="garden-canvas" class="garden-canvas" viewBox="0 0 100 100" tabindex="0" role="application" aria-label="Garden map. Use arrow keys to move the position marker and Enter to use the selected tool.">${patterns}<g class="grid-lines" aria-hidden="true"><path d="${Array.from({length: 9},(_,i)=>`M${(i+1)*10} 0V100 M0 ${(i+1)*10}H100`).join(' ')}"/></g>${beds}${lines}${plants}<g class="keyboard-cursor" aria-hidden="true" transform="translate(${keyboardCursor.x} ${keyboardCursor.y})"><circle r="2"/><path d="M-4 0H4M0-4V4"/></g>${waterStart ? `<circle class="water-start" cx="${waterStart.x}" cy="${waterStart.y}" r="2"/>` : ''}</svg>`;
 }
 
@@ -217,7 +221,7 @@ function renderInspector() {
 
 function renderArchivePanel() {
   const unlocked = licenseIsActive();
-  return `<div class="archive-panel"><h3>Season archive</h3>${unlocked ? `<p>Save a named snapshot before you clear or replant the map.</p><form id="archive-form"><label for="archive-name">Season name</label><input id="archive-name" name="name" required maxlength="40" placeholder="Summer 2026" /><button class="secondary">Save season snapshot</button></form>${garden.archives.length ? `<ul>${garden.archives.map(a => `<li><strong>${escapeHtml(a.name)}</strong><span>${a.counts.beds} beds · ${a.counts.plants} plants · ${a.counts.notes} notes</span><button class="small-link" data-export-archive="${a.id}">Download snapshot</button></li>`).join('')}</ul>` : ''}` : `<p>A $12 one-time purchase adds named season snapshots. The map and exports stay free.</p><a href="${BILLING}/checkout">Buy the season keeper</a><form id="license-form"><label for="license">Have a license? Paste it here</label><input id="license" name="license" required autocomplete="off" /><button class="secondary">Verify license</button><p id="license-status" aria-live="polite"></p></form>`}</div>`;
+  return `<div class="archive-panel"><h3>Season archive</h3>${unlocked ? `<p>Save a named snapshot before you clear or replant the map.</p><p id="license-status" aria-live="polite">${escapeHtml(licenseNotice)}</p><form id="archive-form"><label for="archive-name">Season name</label><input id="archive-name" name="name" required maxlength="40" placeholder="Summer 2026" /><button class="secondary">Save season snapshot</button></form>${garden.archives.length ? `<ul>${garden.archives.map(a => `<li><strong>${escapeHtml(a.name)}</strong><span>${a.counts.beds} beds · ${a.counts.plants} plants · ${a.counts.notes} notes</span><button class="small-link" data-export-archive="${a.id}">Download snapshot</button></li>`).join('')}</ul>` : ''}` : `<p>A $12 one-time purchase adds named season snapshots. The map and exports stay free.</p><a href="${BILLING}/checkout">Buy the season keeper</a><form id="license-form"><label for="license">Have a license? Paste it here</label><input id="license" name="license" required autocomplete="off" /><button class="secondary">Verify license</button><p id="license-status" aria-live="polite">${escapeHtml(licenseNotice)}</p></form>`}</div>`;
 }
 
 function renderLegal(kind: 'privacy'|'terms') {
@@ -250,6 +254,12 @@ function render404() {
 function bindCommon() {
   document.querySelectorAll<HTMLElement>('[data-route]').forEach(el => el.addEventListener('click', event => { event.preventDefault(); navigate(el.dataset.route!); }));
   document.querySelector('[data-action="reload"]')?.addEventListener('click', () => location.reload());
+  document.querySelector('[data-action="recover-map"]')?.addEventListener('click', async () => {
+    await recoverGarden(isDemo);
+    selectedId = null; selectedType = null; tool = 'select'; waterStart = null;
+    await renderMap(isDemo);
+    announce('A fresh local map is ready.');
+  });
   document.querySelectorAll('[data-action="show-license"]').forEach(el => el.addEventListener('click', () => {
     const panel = document.querySelector<HTMLElement>('#license-panel') ?? document.querySelector<HTMLElement>('#settings');
     if (panel) { panel.hidden = false; panel.scrollIntoView({ behavior: 'smooth' }); }
@@ -343,8 +353,17 @@ function selectItem(kind: string, id: string) { selectedType = kind as typeof se
 
 async function persist(message: string) {
   garden.updatedAt = new Date().toISOString();
-  await saveGarden(garden, isDemo);
-  renderMapShell(); announce(message);
+  pendingSaves += 1;
+  setSaveState('Saving locally…');
+  try {
+    await saveGarden(garden, isDemo);
+    renderMapShell(); announce(message);
+  } catch {
+    announce('This change could not be saved. Try again.');
+  } finally {
+    pendingSaves -= 1;
+    if (!pendingSaves) setSaveState('Saved locally');
+  }
 }
 
 function renameBed() {
@@ -395,7 +414,7 @@ function exportCsv() { const header=['date','plant','variety','bed','action','no
 
 async function importGarden(event: Event) {
   const file=(event.target as HTMLInputElement).files?.[0]; if (!file) return;
-  try { const parsed=JSON.parse(await file.text()) as GardenData; if (!Array.isArray(parsed.beds)||!Array.isArray(parsed.plants)||!Array.isArray(parsed.notes)||!Array.isArray(parsed.waterLines)) throw new Error(); if (!confirm(`Replace this map with “${parsed.name || 'imported garden'}”?`)) return; garden={...parsed,archives:parsed.archives??[],unit:parsed.unit==='imperial'?'imperial':'metric'};selectedId=null;selectedType=null;await persist('Garden imported.'); }
+  try { const parsed: unknown=JSON.parse(await file.text()); if (!isGardenData(parsed)) throw new Error(); if (!confirm(`Replace this map with “${parsed.name || 'imported garden'}”?`)) return; garden=structuredClone(parsed);selectedId=null;selectedType=null;await persist('Garden imported.'); }
   catch { announce('Import failed. Choose a Garden Care Map JSON export.'); }
 }
 
@@ -408,7 +427,7 @@ function licenseIsActive() { try { const cached=JSON.parse(localStorage.getItem(
 async function verifyLicense(token: string, showStatus=false) {
   localStorage.setItem(`sb_license:${PRODUCT}`, token);
   const status=document.querySelector<HTMLElement>('#license-status'); if(status) status.textContent='Checking the license…';
-  try { const response=await fetch(`${BILLING}/verify?license=${encodeURIComponent(token)}`); const result=await response.json(); localStorage.setItem(`sb_license_verdict:${PRODUCT}`,JSON.stringify({valid:result.valid,checkedAt:Date.now()})); if(status) status.textContent=result.valid?'License active. Season snapshots are ready.':'This license is not active. Check the token and try again.'; if(showStatus&&currentPath()==='/map') renderMapShell(); }
+  try { const response=await fetch(`${BILLING}/verify?license=${encodeURIComponent(token)}`); const result=await response.json(); localStorage.setItem(`sb_license_verdict:${PRODUCT}`,JSON.stringify({valid:result.valid,checkedAt:Date.now()})); licenseNotice=result.valid?'License active. Season snapshots are ready.':'This license is not active. Check the token and try again.'; if(status) status.textContent=licenseNotice; if(showStatus&&currentPath()==='/map') { renderMapShell(); const settings = document.querySelector<HTMLElement>('#settings'); if (settings) settings.hidden = false; } }
   catch { if(status) status.textContent='The license could not be checked. Connect to the internet and try again.'; }
 }
 
@@ -419,6 +438,7 @@ async function handleLicense() {
   if(saved&&(!cache||Date.now()-cache.checkedAt>86_400_000)&&navigator.onLine) void verifyLicense(saved);
 }
 
+function setSaveState(message: string) { const el=document.querySelector<HTMLElement>('#save-state'); if(el) el.textContent=message; }
 function updateNetworkState(){const el=document.querySelector('#network-state');if(el)el.textContent=navigator.onLine?'Online':'Offline — changes still save';}
 function announce(message:string){const el=document.querySelector<HTMLElement>('#announcer')||document.querySelector<HTMLElement>('#toast');if(el)el.textContent=message;const toast=document.querySelector<HTMLElement>('#toast');if(toast){toast.hidden=false;toast.textContent=message;setTimeout(()=>{toast.hidden=true;},2600);}}
 function focusMainHeading(){requestAnimationFrame(()=>{const h=document.querySelector<HTMLElement>('main h1');h?.focus({preventScroll:true});document.querySelector('#announcer')!.textContent=h?.textContent??'';});}
@@ -435,6 +455,7 @@ async function renderRoute() {
 }
 
 addEventListener('popstate',renderRoute);
+addEventListener('beforeunload', event => { if (pendingSaves) { event.preventDefault(); event.returnValue = ''; } });
 if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').then(async reg=>{
   reg.addEventListener('updatefound',()=>{const worker=reg.installing;worker?.addEventListener('statechange',()=>{if(worker.state==='installed'&&navigator.serviceWorker.controller)announce('An update is ready. Reload to use it.');});});
   await navigator.serviceWorker.ready;
