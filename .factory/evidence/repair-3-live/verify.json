@@ -1,0 +1,14 @@
+{
+  "url": "https://garden-care-map.sociobot.in",
+  "loadMs": 662,
+  "errors": [],
+  "a11y": {
+    "title": "Garden Care Map — Map beds, plants and watering",
+    "lang": "en",
+    "h1": 1,
+    "main": true,
+    "imgsMissingAlt": 0,
+    "buttonsUnlabeled": 0,
+    "textLength": 1616
+  }
+}
