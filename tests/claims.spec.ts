@@ -16,11 +16,12 @@ test('@claim:local-private demo map use sends data only to this site', async ({ 
   const origins = new Set<string>();
   page.on('request', request => origins.add(new URL(request.url()).origin));
   await page.goto('/demo');
+  const productOrigin = new URL(page.url()).origin;
   await page.locator('[data-id="plant-basil"] circle').click();
   await page.getByLabel('Note', { exact: true }).fill('Pinched the top leaves.');
   await page.getByRole('button', { name: 'Save care note' }).click();
   await expect(page.getByText('Pinched the top leaves.')).toBeVisible();
-  expect([...origins]).toEqual(['http://127.0.0.1:4173']);
+  expect([...origins]).toEqual([productOrigin]);
 });
 
 test('@claim:demo-isolation demo data never changes the real map', async ({ page }) => {
