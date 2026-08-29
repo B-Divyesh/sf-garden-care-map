@@ -61,9 +61,9 @@ export async function loadGarden(demo: boolean): Promise<GardenData> {
 
 export async function saveGarden(data: GardenData, demo: boolean): Promise<void> {
   if (!isGardenData(data)) throw new CorruptGardenError();
-  const db = await openDb();
   const key = keyFor(demo);
   try { localStorage.setItem(pendingKeyFor(demo), JSON.stringify(data)); } catch { /* IndexedDB remains the durable store for large local photos. */ }
+  const db = await openDb();
   await new Promise<void>((resolve, reject) => {
     const tx = db.transaction(STORE, 'readwrite');
     tx.objectStore(STORE).put(data, key);
