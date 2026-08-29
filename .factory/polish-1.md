@@ -1,7 +1,7 @@
 # Polish 1 — adversarial review repairs
 
 **Base candidate:** `37a49097a9df6f2b306f2cd067ebf89db5d39811`  
-**Repair commit:** recorded in the handoff after push  
+**Repair commit:** `e8eb8da2288f2ba96043a420f189c4832b22036d`  
 **Demo URL:** https://garden-care-map.sociobot.in/demo
 
 | Finding | Change made | Evidence |

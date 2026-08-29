@@ -1,28 +1,52 @@
-# Garden Care Map — review 1 handoff
+# Garden Care Map — polish 1 handoff
 
 ## Result
 
-Review 1 is **FAIL**. No product code was modified. The committed deliverable is `.factory/review-1.md`.
+Repair commit: `e8eb8da2288f2ba96043a420f189c4832b22036d` (based on release candidate `37a49097a9df6f2b306f2cd067ebf89db5d39811`). It resolves every finding in `.factory/review-1.md` and preserves the botanical field-guide visual system.
 
-## What was checked
+## What changed
 
-- Fresh live visits at 390 × 844 and desktop, including visual review and first-read answers.
-- Full landing and README copy audit with word counts.
-- One-click demo, sample realism, banner, reset/discard behavior, storage separation, offline reload, and request origins.
-- All 11 declared claim commands after `npm ci`; each passed.
-- The 38-test deployed suite: `PLAYWRIGHT_BASE_URL=https://garden-care-map.sociobot.in npm test`; passed.
-- Checkout response, route status, link crawl, headers/cache checks, metadata, static 404, source/history review, and the missed-leverage check.
+- The mobile hero now puts the job, action, and all three privacy/offline/free facts before the artwork.
+- Rewrote every flagged first-read copy unit; removed unsupported refund wording.
+- Added a recorded-fixture license-network-origin claim and test; `.factory/claims.json` now has 12 claims, each with exactly one tagged test.
+- Made preview and demo water totals match at 16.8 m.
+- Added complete per-route title, description, canonical, Open Graph, and Twitter metadata.
+- Rebuilt the actual static 404 shell with header, legal/footer links, favicon, Apple touch icon, metadata, and a plain `Page not found` heading.
+- Bumped the PWA cache and release asset query version so an updated service worker precaches the repaired shell.
 
-## Remaining work
+The complete finding-to-change mapping is in `.factory/polish-1.md`. The verb-first catalog description is in `.factory/catalog-description.txt`.
 
-The review identifies 15 findings: four blocking claim/first-screen failures, three high route/404 failures, and eight minor copy findings. See `.factory/review-1.md` for exact quotes, evidence, and required fixes.
+## Verification
 
-## Re-run
+Fresh dependency install: `npm ci` — PASS (132 packages; 0 vulnerabilities).
+
+- `npm run typecheck` — PASS
+- `npm run lint` — PASS
+- `npm run build` — PASS; `dist/index.html` produced, 55.78 kB / 17.70 kB gzip
+- `npm test` — PASS; 44 Playwright tests, including light/dark axe scans, mobile, offline, privacy, routing, and regression coverage
+- Every exact command in `.factory/claims.json` — PASS individually: offline-reload, local-private, demo-isolation, care-persistence, free-core-tools, json-export, csv-export, local-note-photo, water-total, license-verify, license-network-origin, season-keeper-checkout
+- `/opt/fleet/lib/verify-url.sh http://127.0.0.1:4173/ .factory/evidence/polish-1-local` — PASS: 200, 542 ms, no console/page errors, title/lang/one h1/main/alt/button checks pass
+
+Evidence:
+
+- `.factory/evidence/polish-1-home-390.png` — cold 390 × 844 landing with all three facts visible.
+- `.factory/evidence/polish-1-404.png` — styled 404 route.
+- `.factory/evidence/polish-1-local/verify.json` — URL smoke report and screenshots.
+
+## Run and deploy
 
 ```sh
 npm ci
 npm test
+npm run build
+```
+
+Deploy `dist/` through the configured static work order by pushing `main`. After the push, cold-check `https://garden-care-map.sociobot.in/`, `/demo`, `/privacy`, `/terms`, and an unknown path; rerun the live browser suite with:
+
+```sh
 PLAYWRIGHT_BASE_URL=https://garden-care-map.sociobot.in npm test
 ```
 
-Then repeat the cold browser and HTTP checks documented in `.factory/review-1.md`.
+## Known gaps
+
+None known locally. Live deployment verification is completed after the work-order push and recorded in this file.
