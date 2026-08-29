@@ -7,7 +7,7 @@ const app = document.querySelector<HTMLDivElement>('#app')!;
 const PRODUCT = 'garden-care-map';
 const BUILD = 'v1.0.1';
 const BILLING = 'https://api.sociobot.in/api/v1/products/garden-care-map';
-const ASSET_VERSION = '20260828';
+const ASSET_VERSION = '20260829';
 let garden: GardenData;
 let isDemo = false;
 let tool: Tool = 'select';
@@ -58,21 +58,42 @@ function shell(content: string, options: { appPage?: boolean; title: string }) {
     <div id="toast" class="toast" aria-live="polite" hidden></div>`;
 }
 
-function routeTitle(title: string, description?: string) {
-  document.title = title;
-  const meta = document.querySelector<HTMLMetaElement>('meta[name="description"]');
-  if (meta && description) meta.content = description;
+type RouteMetadata = { title: string; description: string };
+
+const routeMetadata: Record<'home' | 'demo' | 'map' | 'privacy' | 'terms' | 'not-found' | 'error', RouteMetadata> = {
+  home: { title: 'Garden Care Map — Map beds, plants and watering', description: 'Draw your garden, record plant care, and measure irrigation lines in one private offline map.' },
+  demo: { title: 'Demo — Garden Care Map', description: 'Explore a sample garden map without changing your own data.' },
+  map: { title: 'My map — Garden Care Map', description: 'Edit your private garden map and care history.' },
+  privacy: { title: 'Privacy — Garden Care Map', description: 'Read how Garden Care Map stores local garden records and license details.' },
+  terms: { title: 'Terms — Garden Care Map', description: 'Read the terms for using Garden Care Map and its optional season snapshots.' },
+  'not-found': { title: 'Page not found — Garden Care Map', description: 'The requested Garden Care Map page was not found.' },
+  error: { title: 'Map unavailable — Garden Care Map', description: 'Garden Care Map could not open the saved local map.' }
+};
+
+function routeTitle(route: keyof typeof routeMetadata) {
+  const metadata = routeMetadata[route];
+  const url = `https://garden-care-map.sociobot.in${currentPath()}`;
+  document.title = metadata.title;
+  const setMeta = (selector: string, value: string) => {
+    const element = document.querySelector<HTMLMetaElement>(selector);
+    if (element) element.content = value;
+  };
+  setMeta('meta[name="description"]', metadata.description);
+  setMeta('meta[property="og:title"]', metadata.title);
+  setMeta('meta[property="og:description"]', metadata.description);
+  setMeta('meta[property="og:url"]', url);
+  setMeta('meta[name="twitter:title"]', metadata.title);
+  setMeta('meta[name="twitter:description"]', metadata.description);
   const canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
-  if (canonical) canonical.href = `https://garden-care-map.sociobot.in${currentPath()}`;
+  if (canonical) canonical.href = url;
 }
 
 function renderHome() {
   isDemo = false;
-  routeTitle('Garden Care Map — Map beds, plants and watering', 'Draw your garden, record plant care, and measure irrigation lines in one private offline map.');
+  routeTitle('home');
   app.innerHTML = shell(`
     <section class="hero paper-grain">
       <div class="hero-copy">
-        <p class="eyebrow">A field notebook for your garden</p>
         <h1 tabindex="-1">Map beds, plants, care, and water</h1>
         <p class="lede">For small-space gardeners who need every planting and care note tied to its real place.</p>
         <div class="hero-actions">
@@ -95,20 +116,20 @@ function renderHome() {
       </figure>
     </section>
     <section class="preview-section" aria-labelledby="preview-title">
-      <div class="section-intro"><p class="eyebrow">The product</p><h2 id="preview-title">See the whole growing space</h2><p>Each mark has a place. Each plant keeps its own dated history.</p></div>
+      <div class="section-intro"><h2 id="preview-title">Garden map preview</h2><p>Beds, plants, care notes, and water lines share one map. Each plant keeps its own dated history.</p></div>
       ${mapPreview()}
     </section>
     <section class="steps" aria-labelledby="steps-title">
-      <p class="eyebrow">How it works</p><h2 id="steps-title">Keep one living garden record</h2>
+      <h2 id="steps-title">How to use the garden map</h2>
       <ol><li><span>01</span><h3>Draw each bed</h3><p>Place beds and containers on a simple grid.</p></li><li><span>02</span><h3>Pin each plant</h3><p>Name the crop and variety where it grows.</p></li><li><span>03</span><h3>Record each visit</h3><p>Add dated care notes and measure water lines.</p></li></ol>
     </section>
     <section class="limits" aria-labelledby="limits-title">
-      <div><p class="eyebrow">A clear boundary</p><h2 id="limits-title">Your notes, not garden advice</h2></div>
+      <div><h2 id="limits-title">What this tool does not do</h2></div>
       <p>This tool records what you plant and do. It does not identify plants, diagnose disease, predict weather, or recommend pesticides.</p>
     </section>
     <section class="paid" aria-labelledby="paid-title">
-      <div><p class="eyebrow">Optional season keeper</p><h2 id="paid-title">Keep past seasons for $12 once</h2><p>The free map includes every core tool and data export. A one-time purchase adds named season snapshots on this device.</p></div>
-      <div class="price-sheet"><p><strong>$12</strong> one-time purchase</p><a class="primary button-link" href="${BILLING}/checkout">Buy the season keeper <span class="sr-only">through Sociobot checkout</span></a><button class="secondary" data-action="show-license">Restore a license</button><p class="fine">Sociobot and Dodo are the merchant of record. Refunds are handled there.</p></div>
+      <div><p class="eyebrow">Paid season snapshots</p><h2 id="paid-title">Save named season snapshots for $12</h2><p>The free map includes every core tool and data export. A one-time purchase adds named season snapshots on this device.</p></div>
+      <div class="price-sheet"><p><strong>$12</strong> one-time purchase</p><a class="primary button-link" href="${BILLING}/checkout">Buy the season keeper <span class="sr-only">through Sociobot checkout</span></a><button class="secondary" data-action="show-license">Restore a license</button><p class="fine">Sociobot and Dodo are the merchant of record.</p></div>
     </section>
     <section id="license-panel" class="license-panel" hidden aria-labelledby="license-title"><h2 id="license-title">Restore your season keeper</h2><form id="license-form"><label for="license">License token</label><input id="license" name="license" required autocomplete="off" /><button class="primary">Verify license</button><p id="license-status" aria-live="polite"></p></form></section>
   `, { title: 'Home' });
@@ -122,7 +143,7 @@ function mapPreview() {
     <div class="mini-bed p2" style="--x:15%;--y:57%;--w:31%;--h:26%"><b>Tomato pots</b><span>● Tomato</span></div>
     <div class="mini-bed p3" style="--x:58%;--y:57%;--w:30%;--h:24%"><b>Bean trough</b><span>● Bean</span></div>
     <svg viewBox="0 0 100 100" aria-hidden="true"><path d="M4 90 L30 70 L26 25 L71 23 L71 68" /></svg>
-    <p>Hose total: 15.3 m</p>
+    <p>Water lines: 16.8 m</p>
   </div>`;
 }
 
@@ -132,11 +153,12 @@ async function renderMap(demo: boolean) {
     garden = await loadGarden(demo);
   } catch (error) {
     const corrupt = error instanceof CorruptGardenError;
+    routeTitle('error');
     app.innerHTML = shell(`<section class="state-page"><h1 tabindex="-1">${corrupt ? 'Your saved map needs recovery' : 'Your map could not open'}</h1><p>${corrupt ? 'This saved map is not a Garden Care Map export. Reset this map to open a fresh local record.' : 'The browser blocked local storage. Allow site data, then reload this page.'}</p><button class="primary" data-action="${corrupt ? 'recover-map' : 'reload'}">${corrupt ? 'Reset this map' : 'Reload the map'}</button></section>`, { title: 'Error' });
     bindCommon();
     return;
   }
-  routeTitle(`${demo ? 'Demo' : 'My map'} — Garden Care Map`, demo ? 'Explore a sample garden map without changing your own data.' : 'Edit your private garden map and care history.');
+  routeTitle(demo ? 'demo' : 'map');
   renderMapShell();
 }
 
@@ -227,7 +249,7 @@ function renderArchivePanel() {
 function renderLegal(kind: 'privacy'|'terms') {
   isDemo = false;
   const privacy = kind === 'privacy';
-  routeTitle(`${privacy ? 'Privacy' : 'Terms'} — Garden Care Map`);
+  routeTitle(privacy ? 'privacy' : 'terms');
   const body = privacy ? `
     <h1 tabindex="-1">Your garden data stays with you</h1><p class="lede">Garden Care Map stores maps, notes, photos, settings, and licenses in your browser.</p>
     <h2>What this site stores</h2><p>Your garden data uses IndexedDB. Your license token and last verification use local storage. Demo data uses a separate key and never reads your real map.</p>
@@ -237,7 +259,7 @@ function renderLegal(kind: 'privacy'|'terms') {
     <h1 tabindex="-1">Terms for using Garden Care Map</h1><p class="lede">Use this tool to keep your own garden records. These terms apply from 28 August 2026.</p>
     <h2>The tool</h2><p>Garden Care Map records information you enter. It does not give agronomic, medical, pesticide, or safety advice. Check trusted local guidance before acting.</p>
     <h2>Your data</h2><p>You are responsible for your data and backups. Use the export tools before clearing browser storage or moving devices.</p>
-    <h2>Purchase</h2><p>The $12 season keeper is a one-time license purchase. Sociobot and Dodo are the merchant of record. Refunds are handled through the merchant and revoke the license.</p>
+    <h2>Purchase</h2><p>The $12 season keeper is a one-time license purchase. Sociobot and Dodo are the merchant of record.</p>
     <h2>Availability</h2><p>The software is provided as is, without a promise that it fits every garden or device. Liability is limited where the law allows.</p>
     <h2>Contact</h2><p>Email <a href="mailto:support@sociobot.in">support@sociobot.in</a> with terms or purchase questions.</p>`;
   app.innerHTML = shell(`<article class="prose-page">${body}</article>`, { title: privacy ? 'Privacy' : 'Terms' });
@@ -246,8 +268,8 @@ function renderLegal(kind: 'privacy'|'terms') {
 
 function render404() {
   isDemo = false;
-  routeTitle('Page not found — Garden Care Map');
-  app.innerHTML = shell(`<section class="not-found"><div class="lost-label" aria-hidden="true">?</div><h1 tabindex="-1">This marker is off the map</h1><p>The page you asked for does not exist.</p><button class="primary" data-route="/">Return to the garden</button></section>`, { title: 'Not found' });
+  routeTitle('not-found');
+  app.innerHTML = shell(`<section class="not-found"><div class="lost-label" aria-hidden="true">?</div><h1 tabindex="-1">Page not found</h1><p>The page you asked for does not exist.</p><button class="primary" data-route="/">Return to the garden</button></section>`, { title: 'Not found' });
   bindCommon();
 }
 

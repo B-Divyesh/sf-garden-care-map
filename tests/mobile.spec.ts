@@ -9,6 +9,15 @@ test('landing and map work at 390 pixels', async ({ page }) => {
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
+test('all first-screen facts fit in the 390 pixel landing viewport', async ({ page }) => {
+  await page.goto('/');
+  for (const text of ['Garden data stays in this browser.', 'Reopens after your first visit.', 'Every mapping and export tool is free.']) {
+    const box = await page.getByText(text, { exact: true }).boundingBox();
+    expect(box).not.toBeNull();
+    expect((box?.y ?? Infinity) + (box?.height ?? 0)).toBeLessThanOrEqual(844);
+  }
+});
+
 test('keyboard tool places a bed', async ({ page }) => {
   await page.goto('/map');
   await page.getByRole('button', { name: 'Add the first bed' }).click();

@@ -10,10 +10,10 @@ Try the isolated sample at `/demo`. Demo changes use `demo:garden`; the real map
 - Measures water-line segments in meters or feet and shows their total.
 - Exports the complete garden as JSON and every care note as CSV.
 - Reopens offline after the first complete visit.
-- Keeps all normal map use on this device. License checks contact only Sociobot.
+- Keeps all normal map use on this device.
 - Verifies existing season keeper licenses through Sociobot billing.
 
-The free map includes all care, mapping, photo, and export tools. A $12 one-time season keeper license adds named season snapshots. Sociobot and Dodo are the merchant of record; refunds are handled there.
+The free map includes all care, mapping, photo, and export tools. A $12 one-time season keeper license adds named season snapshots. Sociobot and Dodo are the merchant of record.
 
 ## Run and test
 

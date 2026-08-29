@@ -131,3 +131,16 @@ test('@claim:license-verify valid licenses enable season snapshots', async ({ pa
   await expect(page.getByText('Summer 2026')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Download snapshot' })).toBeVisible();
 });
+
+test('@claim:license-network-origin license checks contact only Sociobot', async ({ page }) => {
+  const origins = new Set<string>();
+  page.on('request', request => origins.add(new URL(request.url()).origin));
+  await page.route('https://api.sociobot.in/**', route => route.fulfill({ json: { valid: true, reason: 'ok', expires_at: null } }));
+  await page.goto('/map?license=recorded-license-token');
+  await page.getByRole('button', { name: 'Map settings' }).click();
+  await expect(page.getByText('License active. Season snapshots are ready.')).toBeVisible();
+  expect([...origins].sort()).toEqual([
+    new URL(page.url()).origin,
+    'https://api.sociobot.in'
+  ].sort());
+});

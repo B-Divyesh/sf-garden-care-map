@@ -86,6 +86,43 @@ test('asset references carry a release version', async ({ page }) => {
   expect(manifest.icons.every((icon: { src: string }) => /\?v=\d{8}$/.test(icon.src))).toBe(true);
 });
 
+test('every application route sets complete route metadata', async ({ page }) => {
+  const expected = [
+    ['/', 'Garden Care Map — Map beds, plants and watering', 'Draw your garden, record plant care, and measure irrigation lines in one private offline map.'],
+    ['/demo', 'Demo — Garden Care Map', 'Explore a sample garden map without changing your own data.'],
+    ['/map', 'My map — Garden Care Map', 'Edit your private garden map and care history.'],
+    ['/privacy', 'Privacy — Garden Care Map', 'Read how Garden Care Map stores local garden records and license details.'],
+    ['/terms', 'Terms — Garden Care Map', 'Read the terms for using Garden Care Map and its optional season snapshots.'],
+    ['/missing-page', 'Page not found — Garden Care Map', 'The requested Garden Care Map page was not found.']
+  ] as const;
+  for (const [path, title, description] of expected) {
+    await page.goto(path);
+    const url = `https://garden-care-map.sociobot.in${path}`;
+    await expect(page).toHaveTitle(title);
+    await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', description);
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', url);
+    await expect(page.locator('meta[property="og:title"]')).toHaveAttribute('content', title);
+    await expect(page.locator('meta[property="og:description"]')).toHaveAttribute('content', description);
+    await expect(page.locator('meta[property="og:url"]')).toHaveAttribute('content', url);
+    await expect(page.locator('meta[name="twitter:title"]')).toHaveAttribute('content', title);
+    await expect(page.locator('meta[name="twitter:description"]')).toHaveAttribute('content', description);
+  }
+});
+
+test('the static 404 has the required product shell and metadata', async () => {
+  const html = await readFile('public/404.html', 'utf8');
+  for (const required of ['<header', '<main id="main"', '<footer', 'Page not found', 'href="/privacy"', 'href="/terms"', 'rel="canonical"', 'name="description"', 'property="og:title"', 'name="twitter:title"', 'favicon.svg', 'apple-touch-icon']) {
+    expect(html).toContain(required);
+  }
+});
+
+test('landing preview matches the sample water total', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.locator('.preview-map')).toContainText('Water lines: 16.8 m');
+  await page.goto('/demo');
+  await expect(page.locator('.map-footer')).toContainText('Water lines: 16.8 m');
+});
+
 test('an installed service-worker update is announced', async ({ page }) => {
   await page.addInitScript(() => {
     const worker = new EventTarget() as EventTarget & { state: string };
