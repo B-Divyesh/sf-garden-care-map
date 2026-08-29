@@ -92,8 +92,7 @@ test('every application route sets complete route metadata', async ({ page }) =>
     ['/demo', 'Demo — Garden Care Map', 'Explore a sample garden map without changing your own data.'],
     ['/map', 'My map — Garden Care Map', 'Edit your private garden map and care history.'],
     ['/privacy', 'Privacy — Garden Care Map', 'Read how Garden Care Map stores local garden records and license details.'],
-    ['/terms', 'Terms — Garden Care Map', 'Read the terms for using Garden Care Map and its optional season snapshots.'],
-    ['/missing-page', 'Page not found — Garden Care Map', 'The requested Garden Care Map page was not found.']
+    ['/terms', 'Terms — Garden Care Map', 'Read the terms for using Garden Care Map and its optional season snapshots.']
   ] as const;
   for (const [path, title, description] of expected) {
     await page.goto(path);
@@ -114,6 +113,14 @@ test('the static 404 has the required product shell and metadata', async () => {
   for (const required of ['<header', '<main id="main"', '<footer', 'Page not found', 'href="/privacy"', 'href="/terms"', 'rel="canonical"', 'name="description"', 'property="og:title"', 'name="twitter:title"', 'favicon.svg', 'apple-touch-icon']) {
     expect(html).toContain(required);
   }
+});
+
+test('unknown routes present the static page-not-found state', async ({ page }) => {
+  await page.goto('/missing-page');
+  await expect(page).toHaveTitle('Page not found — Garden Care Map');
+  await expect(page.getByRole('heading', { name: 'Page not found' })).toBeVisible();
+  await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', 'The requested Garden Care Map page was not found.');
+  await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', /\/(?:missing-page|404)$/);
 });
 
 test('landing preview matches the sample water total', async ({ page }) => {

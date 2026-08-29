@@ -23,3 +23,5 @@
 | F-1-15 | Replaced the unnatural price heading with `Save named season snapshots for $12`. | `.factory/copy-audit.md`; live `/`. |
 
 Earlier review findings remain covered by the existing regression suite: checkout redirect, import validation and recovery, immediate-save persistence, invalid-license feedback, touch targets, 200% text layout, demo discard, real 404 status, skip link, asset caching, contrast, and offline reload.
+
+Post-deploy recheck: `PLAYWRIGHT_BASE_URL=https://garden-care-map.sociobot.in npm test` passed 45/45. The deployed `/`, `/demo`, `/map`, `/privacy`, and `/terms` returned 200; `/missing-page` returned 404. `.factory/evidence/polish-1-live/verify.json` and its screenshots record the cold production check.
