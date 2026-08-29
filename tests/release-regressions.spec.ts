@@ -132,7 +132,7 @@ test('landing preview matches the sample water total', async ({ page }) => {
   await expect(page.locator('.map-footer')).toContainText('Water lines: 16.8 m');
 });
 
-test('the first-screen sample action opens the isolated query demo with reset controls', async ({ page }) => {
+test('@claim:sample-demo first-screen action opens a complete isolated sample garden map', async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'Map beds, plants, care notes, and water lines' })).toBeVisible();
   await page.getByRole('button', { name: 'Try it with sample data' }).click();
@@ -140,6 +140,11 @@ test('the first-screen sample action opens the isolated query demo with reset co
   await expect(page.getByText('Demo — sample data, nothing is saved')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Reset demo' })).toBeVisible();
   await expect(page.locator('[data-kind="bed"]')).toHaveCount(4);
+  await expect(page.locator('[data-kind="plant"]')).toHaveCount(5);
+  await expect(page.locator('[data-kind="water"]')).toHaveCount(4);
+  await page.locator('[data-id="plant-basil"] circle').click();
+  await expect(page.locator('.care-list time[datetime="2026-08-27"]')).toBeVisible();
+  await expect(page.getByText('Soil was dry two fingers down.')).toBeVisible();
 });
 
 test('an installed service-worker update is announced', async ({ page }) => {
