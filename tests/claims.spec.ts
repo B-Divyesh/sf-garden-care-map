@@ -49,6 +49,20 @@ test('@claim:demo-isolation every demo exit discards edits without changing the 
 
   await page.getByRole('button', { name: 'Add bed' }).click();
   await page.locator('#garden-canvas').click({ position: { x: 100, y: 100 } });
+  await page.goBack();
+  await expect(page.getByRole('heading', { name: 'My garden' })).toBeVisible();
+  await expect(page.locator('[data-kind="bed"]')).toHaveCount(1);
+  await page.goForward();
+  await expect(page.locator('[data-kind="bed"]')).toHaveCount(4);
+  await page.getByRole('button', { name: 'Add bed' }).click();
+  await page.locator('#garden-canvas').click({ position: { x: 100, y: 100 } });
+  await page.goForward();
+  await expect(page).toHaveURL(/\/privacy$/);
+  await page.goBack();
+  await expect(page.locator('[data-kind="bed"]')).toHaveCount(4);
+
+  await page.getByRole('button', { name: 'Add bed' }).click();
+  await page.locator('#garden-canvas').click({ position: { x: 100, y: 100 } });
   await page.getByRole('button', { name: 'Reset demo' }).click();
   await expect(page.locator('[data-kind="bed"]')).toHaveCount(4);
   await page.getByRole('button', { name: 'Start for real' }).click();
