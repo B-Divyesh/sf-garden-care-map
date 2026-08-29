@@ -25,12 +25,12 @@ Every finding in `review-1.md` and `review-2.md` was checked again. No severity 
 | F-1-13 | Kept `What this tool does not do` as the boundary heading. | Test: accessibility route baseline; screenshot: `.factory/evidence/polish-2-live/home/screenshot-mobile.png`; live: `/`. |
 | F-1-14 | Kept `Paid season snapshots` as the concrete tier label. | Test: `@claim:season-keeper-checkout`; screenshot: `.factory/evidence/polish-2-live/home/screenshot-mobile.png`; live: `/`. |
 | F-1-15 | Kept `Save named season snapshots for $12` as the price heading. | Test: `@claim:season-keeper-checkout`; screenshot: `.factory/evidence/polish-2-live/home/screenshot-mobile.png`; live: `/`. |
-| F-2-1 | Added one `leaveDemo()` path used by navigation, history, Start for real, and outbound links. Cold demo entry reseeds the sample, while reload preserves the current temporary session. The first-screen action and nav now open isolated `/?demo=1`; `/demo` remains an alias. Updated the claim contract to cover a pre-existing real bed, My map, Privacy, browser back, reset, re-entry, and Start for real. | Test: `@claim:demo-isolation every demo exit discards edits without changing the real map`; screenshot: `.factory/evidence/polish-2-live/demo/screenshot-mobile.png`; live: `/?demo=1` → `/map`, `/privacy`, back, reset, and re-entry all passed. |
+| F-2-1 | Added one `leaveDemo()` path used by navigation, history, Start for real, and outbound links. Cold demo entry reseeds the sample, while reload preserves the current temporary session. The first-screen action and nav now open isolated `/?demo=1`; `/demo` remains an alias. Updated the claim contract to cover a pre-existing real bed, My map, Privacy, browser back and forward, reset, re-entry, and Start for real. | Test: `@claim:demo-isolation every demo exit discards edits without changing the real map`; screenshot: `.factory/evidence/polish-2-live/demo/screenshot-mobile.png`; live: `/?demo=1` → `/map`, `/privacy`, back, forward, reset, and re-entry all passed. |
 | F-2-2 | Rewrote the h1 to `Map beds, plants, care notes, and water lines`; aligned home metadata, footer wording, catalog copy, and terminology audit. | Tests: `landing and map work at 390 pixels`, `the first-screen sample action opens the isolated query demo with reset controls`; screenshot: `.factory/evidence/polish-2-live/home/screenshot-mobile.png`; live: `/`. |
 
 ## Verification summary
 
-- Clean clone: `/tmp/garden-care-map-polish-2-claims.sCaGTM` at `1811f947279b94c3a3c6d6a775c034a113ca6005`.
+- Final clean clone: `/tmp/garden-care-map-polish-2-final.0PEWxp` at `4d987b4096d61c2801f593f30f889b967f58e8fc`.
 - Every exact command in `.factory/claims.json`: 12/12 passed individually.
 - Clean-clone `npm test`: 48/48 passed.
 - Work-order command `npm ci && npm test && npm run build`: passed; `dist/index.html` is 56,498 bytes and 17.91 kB gzip.

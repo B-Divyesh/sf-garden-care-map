@@ -22,7 +22,7 @@ The full finding map is in `.factory/polish-2.md`.
 
 Repair commit deployed: `1811f947279b94c3a3c6d6a775c034a113ca6005`.
 
-Clean clone: `/tmp/garden-care-map-polish-2-claims.sCaGTM` at the repair commit.
+Final clean clone: `/tmp/garden-care-map-polish-2-final.0PEWxp` at `4d987b4096d61c2801f593f30f889b967f58e8fc`.
 
 - `npm ci`: passed; zero vulnerabilities.
 - Every exact `.factory/claims.json` command: 12/12 passed individually.
