@@ -1,27 +1,16 @@
-# Garden Care Map — verification 6 handoff
+# Garden Care Map — review 5 handoff
 
 ## Result: PASS
 
-Independent QA accepted candidate `a28697ec3a32115240b41d095ffad9cc49ca6a30` at <https://garden-care-map.sociobot.in>. The deployment is byte-identical to the candidate production build and has no release-blocking, high, medium, or low defects.
+Review 5 performed a fresh adversarial first-read and regression audit of <https://garden-care-map.sociobot.in> without changing product code. The complete report is `.factory/review-5.md`; it found zero open findings.
 
-## Verification summary
+## What was verified
 
-- First-read requirement and one-click isolated sample demo: PASS.
-- Required claims manifest present; all 13 literal claim tests and the consolidated 13/13 run: PASS.
-- Clean `npm ci`, lint, typecheck, full 56-test local suite, and production build: PASS.
-- Full 56-test suite against the live origin: PASS.
-- Desktop, 390 px mobile, keyboard, invalid input/recovery, local persistence, exports, unit conversion, offline reload, service-worker update announcement, and live response headers: PASS.
-- Normal demo traffic used only the product origin; license traffic is limited to Sociobot. A fresh invalid-token burst observed a 30-request allowance, then 429 responses with `Retry-After: 2`.
-- Live Lighthouse mobile: 92 performance, 100 accessibility, 100 best practices, 100 SEO; LCP 1.1 s and CLS 0.
-
-## Build identity
-
-```text
-dist/index.html SHA-256
-95d6d1bc24d9ef1ba7af21a711e667e27fd887bba5058a6cc9b9cb337e8b4dc8
-```
-
-The downloaded live `/` response has the same hash. Build output is 56,409 bytes / 17,695 gzip bytes.
+- Fresh desktop and 390 × 844 mobile cold loads plainly answer the job, audience, and first action before scrolling. All three privacy/offline/free facts are in the phone viewport; no horizontal overflow or console/page error was observed.
+- One click enters the isolated, already-populated sample. The persistent demo banner, reset, all exit paths, real-data isolation, request-origin privacy, and offline reload are covered by the claim tests.
+- Every one of the 13 literal commands in `.factory/claims.json` passed. Clean `npm ci`, `npm run lint`, `npm run typecheck`, and `npm test` also passed; the full browser suite is **56/56**.
+- Routes, metadata, links, real 404, deep-link/history focus, shared shell, accessibility checks, dark mode, keyboard/mobile behavior, and current checkout redirect were rechecked.
+- Every finding from reviews 1–4 and prior verification/polish reports was confirmed fixed in both live behavior and source/test coverage.
 
 ## Run and verify
 
@@ -33,8 +22,8 @@ npm test
 npm run build
 ```
 
-Use `http://127.0.0.1:4173/?demo=1` after `npm run preview` for the isolated sample.
+After `npm run preview`, open `http://127.0.0.1:4173/?demo=1` for the isolated sample.
 
-## Evidence and known gaps
+## Known gaps
 
-The complete independent report is `.factory/verification-6.md`. No known gaps or deferred items remain.
+None. This review added documentation only; no product behavior was changed.
