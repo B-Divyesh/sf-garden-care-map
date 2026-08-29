@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test('landing and map work at 390 pixels', async ({ page }) => {
   await page.goto('/');
-  await expect(page.getByRole('heading', { name: 'Map beds, plants, care, and water' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Map beds, plants, care notes, and water lines' })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.getByRole('button', { name: 'Try it with sample data' }).click();
   await expect(page.locator('#garden-canvas')).toBeVisible();
@@ -10,6 +10,7 @@ test('landing and map work at 390 pixels', async ({ page }) => {
 });
 
 test('all first-screen facts fit in the 390 pixel landing viewport', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
   await page.goto('/');
   for (const text of ['Garden data stays in this browser.', 'Reopens after your first visit.', 'Every mapping and export tool is free.']) {
     const box = await page.getByText(text, { exact: true }).boundingBox();
@@ -30,7 +31,7 @@ test('keyboard tool places a bed', async ({ page }) => {
 });
 
 test('mobile core controls have 44 pixel hit areas and 200% text does not overflow', async ({ page }) => {
-  await page.goto('/demo');
+  await page.goto('/?demo=1');
   for (const name of ['Reset demo', 'Start for real']) {
     const box = await page.getByRole('button', { name }).boundingBox();
     expect(box?.height).toBeGreaterThanOrEqual(44);
@@ -43,6 +44,6 @@ test('mobile core controls have 44 pixel hit areas and 200% text does not overfl
   await page.setViewportSize({ width: 195, height: 844 });
   await page.goto('/');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-  await page.goto('/demo');
+  await page.goto('/?demo=1');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });

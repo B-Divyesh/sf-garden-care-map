@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 
 test('@claim:offline-reload works offline after the first visit', async ({ page, context }) => {
-  await page.goto('/demo');
+  await page.goto('/?demo=1');
   await expect(page.getByRole('heading', { name: 'Courtyard kitchen garden' })).toBeVisible();
   await page.evaluate(async () => { await navigator.serviceWorker.ready; });
   await page.waitForFunction(() => navigator.serviceWorker.controller !== null);
@@ -15,7 +15,7 @@ test('@claim:offline-reload works offline after the first visit', async ({ page,
 test('@claim:local-private demo map use sends data only to this site', async ({ page }) => {
   const origins = new Set<string>();
   page.on('request', request => origins.add(new URL(request.url()).origin));
-  await page.goto('/demo');
+  await page.goto('/?demo=1');
   const productOrigin = new URL(page.url()).origin;
   await page.locator('[data-id="plant-basil"] circle').click();
   await page.getByLabel('Note', { exact: true }).fill('Pinched the top leaves.');
@@ -24,20 +24,39 @@ test('@claim:local-private demo map use sends data only to this site', async ({ 
   expect([...origins]).toEqual([productOrigin]);
 });
 
-test('@claim:demo-isolation demo data never changes the real map', async ({ page }) => {
-  await page.goto('/demo');
+test('@claim:demo-isolation every demo exit discards edits without changing the real map', async ({ page }) => {
+  await page.goto('/map');
+  await page.getByRole('button', { name: 'Add the first bed' }).click();
+  await expect(page.locator('[data-kind="bed"]')).toHaveCount(1);
+
+  await page.goto('/?demo=1');
+  await expect(page.getByText('Demo — sample data, nothing is saved')).toBeVisible();
   await page.getByRole('button', { name: 'Add bed' }).click();
   await page.locator('#garden-canvas').click({ position: { x: 100, y: 100 } });
   await expect(page.locator('[data-kind="bed"]')).toHaveCount(5);
-  await page.getByRole('button', { name: 'Start for real' }).click();
+  await page.getByRole('link', { name: 'My map' }).click();
   await expect(page.getByRole('heading', { name: 'My garden' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Your map is ready for its first bed' })).toBeVisible();
-  await page.goto('/demo');
+  await expect(page.locator('[data-kind="bed"]')).toHaveCount(1);
+
+  await page.getByRole('link', { name: 'Demo' }).click();
   await expect(page.locator('[data-kind="bed"]')).toHaveCount(4);
+  await page.getByRole('button', { name: 'Add bed' }).click();
+  await page.locator('#garden-canvas').click({ position: { x: 100, y: 100 } });
+  await page.getByRole('link', { name: 'Privacy' }).last().click();
+  await expect(page).toHaveURL(/\/privacy$/);
+  await page.goBack();
+  await expect(page.locator('[data-kind="bed"]')).toHaveCount(4);
+
+  await page.getByRole('button', { name: 'Add bed' }).click();
+  await page.locator('#garden-canvas').click({ position: { x: 100, y: 100 } });
+  await page.getByRole('button', { name: 'Reset demo' }).click();
+  await expect(page.locator('[data-kind="bed"]')).toHaveCount(4);
+  await page.getByRole('button', { name: 'Start for real' }).click();
+  await expect(page.locator('[data-kind="bed"]')).toHaveCount(1);
 });
 
 test('@claim:care-persistence saves plant care across reloads', async ({ page }) => {
-  await page.goto('/demo');
+  await page.goto('/?demo=1');
   await page.locator('[data-id="plant-basil"] circle').click();
   await page.getByLabel('Note', { exact: true }).fill('Checked after the evening rain.');
   await page.getByRole('button', { name: 'Save care note' }).click();
@@ -47,7 +66,7 @@ test('@claim:care-persistence saves plant care across reloads', async ({ page })
 });
 
 test('@claim:free-core-tools mapping and both exports work without a license', async ({ page }) => {
-  await page.goto('/demo');
+  await page.goto('/?demo=1');
   await expect(page.getByRole('heading', { name: 'Courtyard kitchen garden' })).toBeVisible();
   await page.getByRole('button', { name: 'Add bed' }).click();
   await page.locator('#garden-canvas').click({ position: { x: 100, y: 100 } });
@@ -63,7 +82,7 @@ test('@claim:free-core-tools mapping and both exports work without a license', a
 });
 
 test('@claim:json-export downloads the complete demo garden', async ({ page }) => {
-  await page.goto('/demo');
+  await page.goto('/?demo=1');
   const downloadPromise = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Export garden' }).click();
   const download = await downloadPromise;
@@ -79,7 +98,7 @@ test('@claim:json-export downloads the complete demo garden', async ({ page }) =
 });
 
 test('@claim:csv-export exports one row for every care note', async ({ page }) => {
-  await page.goto('/demo');
+  await page.goto('/?demo=1');
   const downloadPromise = page.waitForEvent('download');
   await page.getByRole('button', { name: 'Export care CSV' }).click();
   const download = await downloadPromise;
@@ -95,7 +114,7 @@ test('@claim:csv-export exports one row for every care note', async ({ page }) =
 test('@claim:local-note-photo stores a note photo locally and keeps it after reload', async ({ page }) => {
   const origins = new Set<string>();
   page.on('request', request => origins.add(new URL(request.url()).origin));
-  await page.goto('/demo');
+  await page.goto('/?demo=1');
   const productOrigin = new URL(page.url()).origin;
   await page.locator('[data-id="plant-basil"] circle').click();
   await page.getByLabel('Note', { exact: true }).fill('Photo shows new basil leaves.');
@@ -113,7 +132,7 @@ test('@claim:local-note-photo stores a note photo locally and keeps it after rel
 });
 
 test('@claim:water-total measures and totals irrigation segments', async ({ page }) => {
-  await page.goto('/demo');
+  await page.goto('/?demo=1');
   await expect(page.locator('.map-footer')).toContainText('Water lines: 16.8 m');
   await page.getByRole('button', { name: 'Map settings' }).click();
   await page.getByLabel('Imperial').check();

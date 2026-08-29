@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
 
 for (const colorScheme of ['light', 'dark'] as const) {
-  for (const path of ['/', '/demo', '/map', '/privacy', '/terms', '/missing-page']) {
+  for (const path of ['/', '/?demo=1', '/demo', '/map', '/privacy', '/terms', '/missing-page']) {
     test(`accessibility baseline ${path} in ${colorScheme} mode`, async ({ page }) => {
       await page.emulateMedia({ colorScheme });
       await page.goto(path);
@@ -27,5 +27,5 @@ test('history navigation restores routes', async ({ page }) => {
   await expect(page).toHaveURL(/\/privacy$/);
   await page.goBack();
   await expect(page).toHaveURL(/\/$/);
-  await expect(page.getByRole('heading', { name: 'Map beds, plants, care, and water' })).toBeFocused();
+  await expect(page.getByRole('heading', { name: 'Map beds, plants, care notes, and water lines' })).toBeFocused();
 });

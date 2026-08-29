@@ -2,7 +2,7 @@
 
 Garden Care Map is an offline field notebook for small-space gardeners. Draw beds, pin plants, record dated care, and measure connected water lines on one map.
 
-Try the isolated sample at `/demo`. Demo changes use `demo:garden`; the real map uses `real:garden`. **Start for real** deletes the demo changes.
+Try the isolated sample at `/?demo=1` or `/demo`. Demo changes use `demo:garden`; the real map uses `real:garden`. Every demo exit deletes the demo changes.
 
 ## What it does
 
@@ -24,7 +24,7 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:5173/demo` for the sample.
+Open `http://localhost:5173/?demo=1` for the sample.
 
 Run the full production and browser test gate:
 

@@ -5,7 +5,7 @@ import { isGardenData } from './schema';
 
 const app = document.querySelector<HTMLDivElement>('#app')!;
 const PRODUCT = 'garden-care-map';
-const BUILD = 'v1.0.1';
+const BUILD = 'v1.0.2';
 const BILLING = 'https://api.sociobot.in/api/v1/products/garden-care-map';
 const ASSET_VERSION = '20260829';
 let garden: GardenData;
@@ -27,9 +27,29 @@ function currentPath() {
   return path;
 }
 
-function navigate(path: string) {
+function isDemoLocation(value = location.href) {
+  const url = new URL(value, location.href);
+  return url.pathname.replace(/\/+$/, '') === '/demo' || (url.pathname === '/' && url.searchParams.get('demo') === '1');
+}
+
+function resetMapInteraction() {
+  selectedId = null;
+  selectedType = null;
+  tool = 'select';
+  waterStart = null;
+}
+
+async function leaveDemo() {
+  if (!isDemo) return;
+  await clearDemoGarden();
+  isDemo = false;
+  resetMapInteraction();
+}
+
+async function navigate(path: string) {
+  if (isDemo && !isDemoLocation(path)) await leaveDemo();
   history.pushState({}, '', path);
-  renderRoute();
+  await renderRoute();
 }
 
 function shell(content: string, options: { appPage?: boolean; title: string }) {
@@ -43,14 +63,14 @@ function shell(content: string, options: { appPage?: boolean; title: string }) {
         <span>Garden Care Map</span>
       </a>
       <nav aria-label="Main navigation">
-        <a href="/demo" data-route="/demo">Demo</a>
+        <a href="/?demo=1" data-route="/?demo=1">Demo</a>
         <a href="/map" data-route="/map">My map</a>
         <a href="/privacy" data-route="/privacy">Privacy</a>
       </nav>
     </header>
     <main id="main" class="${options.appPage ? 'app-main' : ''}">${content}</main>
     <footer>
-      <p>Map beds, plant care, and water lines in one place.</p>
+      <p>Map beds, plants, care notes, and water lines in one place.</p>
       <div><a href="/privacy" data-route="/privacy">Privacy</a><a href="/terms" data-route="/terms">Terms</a><a href="https://sociobot.in" rel="external">Built by Param Factory <span class="sr-only">(external site)</span></a></div>
       <p>${BUILD} · Original generated field-guide artwork</p>
     </footer>
@@ -58,21 +78,21 @@ function shell(content: string, options: { appPage?: boolean; title: string }) {
     <div id="toast" class="toast" aria-live="polite" hidden></div>`;
 }
 
-type RouteMetadata = { title: string; description: string };
+type RouteMetadata = { title: string; description: string; canonicalPath: string };
 
 const routeMetadata: Record<'home' | 'demo' | 'map' | 'privacy' | 'terms' | 'not-found' | 'error', RouteMetadata> = {
-  home: { title: 'Garden Care Map — Map beds, plants and watering', description: 'Draw your garden, record plant care, and measure irrigation lines in one private offline map.' },
-  demo: { title: 'Demo — Garden Care Map', description: 'Explore a sample garden map without changing your own data.' },
-  map: { title: 'My map — Garden Care Map', description: 'Edit your private garden map and care history.' },
-  privacy: { title: 'Privacy — Garden Care Map', description: 'Read how Garden Care Map stores local garden records and license details.' },
-  terms: { title: 'Terms — Garden Care Map', description: 'Read the terms for using Garden Care Map and its optional season snapshots.' },
-  'not-found': { title: 'Page not found — Garden Care Map', description: 'The requested Garden Care Map page was not found.' },
-  error: { title: 'Map unavailable — Garden Care Map', description: 'Garden Care Map could not open the saved local map.' }
+  home: { title: 'Garden Care Map — Map care notes and water lines', description: 'Map garden beds, plants, care notes, and water lines in one private offline record.', canonicalPath: '/' },
+  demo: { title: 'Demo — Garden Care Map', description: 'Explore a sample garden map without changing your own data.', canonicalPath: '/demo' },
+  map: { title: 'My map — Garden Care Map', description: 'Edit your private garden map and care history.', canonicalPath: '/map' },
+  privacy: { title: 'Privacy — Garden Care Map', description: 'Read how Garden Care Map stores local garden records and license details.', canonicalPath: '/privacy' },
+  terms: { title: 'Terms — Garden Care Map', description: 'Read the terms for using Garden Care Map and its optional season snapshots.', canonicalPath: '/terms' },
+  'not-found': { title: 'Page not found — Garden Care Map', description: 'The requested Garden Care Map page was not found.', canonicalPath: '/404' },
+  error: { title: 'Map unavailable — Garden Care Map', description: 'Garden Care Map could not open the saved local map.', canonicalPath: currentPath() }
 };
 
 function routeTitle(route: keyof typeof routeMetadata) {
   const metadata = routeMetadata[route];
-  const url = `https://garden-care-map.sociobot.in${currentPath()}`;
+  const url = `https://garden-care-map.sociobot.in${metadata.canonicalPath}`;
   document.title = metadata.title;
   const setMeta = (selector: string, value: string) => {
     const element = document.querySelector<HTMLMetaElement>(selector);
@@ -89,15 +109,14 @@ function routeTitle(route: keyof typeof routeMetadata) {
 }
 
 function renderHome() {
-  isDemo = false;
   routeTitle('home');
   app.innerHTML = shell(`
     <section class="hero paper-grain">
       <div class="hero-copy">
-        <h1 tabindex="-1">Map beds, plants, care, and water</h1>
+        <h1 tabindex="-1">Map beds, plants, care notes, and water lines</h1>
         <p class="lede">For small-space gardeners who need every planting and care note tied to its real place.</p>
         <div class="hero-actions">
-          <button class="primary" data-route="/demo">Try it with sample data</button>
+          <button class="primary" data-route="/?demo=1">Try it with sample data</button>
           <span>It opens a complete garden map. Demo changes stay separate.</span>
         </div>
         <button class="secondary" data-route="/map">Start my blank map</button>
@@ -150,7 +169,8 @@ function mapPreview() {
 async function renderMap(demo: boolean) {
   isDemo = demo;
   try {
-    garden = await loadGarden(demo);
+    const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
+    garden = demo && !hasRenderedRoute && navigation?.type !== 'reload' ? await resetDemo() : await loadGarden(demo);
   } catch (error) {
     const corrupt = error instanceof CorruptGardenError;
     routeTitle('error');
@@ -247,7 +267,6 @@ function renderArchivePanel() {
 }
 
 function renderLegal(kind: 'privacy'|'terms') {
-  isDemo = false;
   const privacy = kind === 'privacy';
   routeTitle(privacy ? 'privacy' : 'terms');
   const body = privacy ? `
@@ -267,14 +286,18 @@ function renderLegal(kind: 'privacy'|'terms') {
 }
 
 function render404() {
-  isDemo = false;
   routeTitle('not-found');
   app.innerHTML = shell(`<section class="not-found"><div class="lost-label" aria-hidden="true">?</div><h1 tabindex="-1">Page not found</h1><p>The page you asked for does not exist.</p><button class="primary" data-route="/">Return to the garden</button></section>`, { title: 'Not found' });
   bindCommon();
 }
 
 function bindCommon() {
-  document.querySelectorAll<HTMLElement>('[data-route]').forEach(el => el.addEventListener('click', event => { event.preventDefault(); navigate(el.dataset.route!); }));
+  document.querySelectorAll<HTMLElement>('[data-route]').forEach(el => el.addEventListener('click', event => { event.preventDefault(); void navigate(el.dataset.route!); }));
+  document.querySelectorAll<HTMLAnchorElement>('a[href]:not([data-route])').forEach(link => link.addEventListener('click', event => {
+    if (!isDemo || link.href.startsWith('mailto:')) return;
+    event.preventDefault();
+    void leaveDemo().then(() => location.assign(link.href));
+  }));
   document.querySelector('[data-action="reload"]')?.addEventListener('click', () => location.reload());
   document.querySelector('[data-action="recover-map"]')?.addEventListener('click', async () => {
     await recoverGarden(isDemo);
@@ -292,9 +315,7 @@ function bindCommon() {
   });
   document.querySelector('[data-action="reset-demo"]')?.addEventListener('click', async () => { garden = await resetDemo(); renderMapShell(); announce('Demo reset to its original sample.'); });
   document.querySelector('[data-action="start-real"]')?.addEventListener('click', async () => {
-    await clearDemoGarden();
-    selectedId = null; selectedType = null; tool = 'select'; waterStart = null;
-    navigate('/map');
+    await navigate('/map');
   });
 }
 
@@ -467,8 +488,13 @@ function focusMainHeading(){requestAnimationFrame(()=>{const h=document.querySel
 
 async function renderRoute() {
   const path=currentPath();
-  if(path==='/') renderHome();
-  else if(path==='/demo') await renderMap(true);
+  const demo = isDemoLocation();
+  if (!demo && (isDemo || !hasRenderedRoute)) {
+    if (isDemo) await leaveDemo();
+    else await clearDemoGarden();
+  }
+  if(demo) await renderMap(true);
+  else if(path==='/') renderHome();
   else if(path==='/map') await renderMap(false);
   else if(path==='/privacy'||path==='/terms') renderLegal(path.slice(1) as 'privacy'|'terms');
   else render404();
@@ -476,7 +502,7 @@ async function renderRoute() {
   hasRenderedRoute = true;
 }
 
-addEventListener('popstate',renderRoute);
+addEventListener('popstate', () => { void renderRoute(); });
 addEventListener('beforeunload', event => { if (pendingSaves) { event.preventDefault(); event.returnValue = ''; } });
 if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').then(async reg=>{
   reg.addEventListener('updatefound',()=>{const worker=reg.installing;worker?.addEventListener('statechange',()=>{if(worker.state==='installed'&&navigator.serviceWorker.controller)announce('An update is ready. Reload to use it.');});});

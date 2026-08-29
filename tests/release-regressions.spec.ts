@@ -88,7 +88,8 @@ test('asset references carry a release version', async ({ page }) => {
 
 test('every application route sets complete route metadata', async ({ page }) => {
   const expected = [
-    ['/', 'Garden Care Map — Map beds, plants and watering', 'Draw your garden, record plant care, and measure irrigation lines in one private offline map.'],
+    ['/', 'Garden Care Map — Map care notes and water lines', 'Map garden beds, plants, care notes, and water lines in one private offline record.'],
+    ['/?demo=1', 'Demo — Garden Care Map', 'Explore a sample garden map without changing your own data.'],
     ['/demo', 'Demo — Garden Care Map', 'Explore a sample garden map without changing your own data.'],
     ['/map', 'My map — Garden Care Map', 'Edit your private garden map and care history.'],
     ['/privacy', 'Privacy — Garden Care Map', 'Read how Garden Care Map stores local garden records and license details.'],
@@ -96,7 +97,8 @@ test('every application route sets complete route metadata', async ({ page }) =>
   ] as const;
   for (const [path, title, description] of expected) {
     await page.goto(path);
-    const url = `https://garden-care-map.sociobot.in${path}`;
+    const canonicalPath = path === '/?demo=1' ? '/demo' : path;
+    const url = `https://garden-care-map.sociobot.in${canonicalPath}`;
     await expect(page).toHaveTitle(title);
     await expect(page.locator('meta[name="description"]')).toHaveAttribute('content', description);
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute('href', url);
@@ -128,6 +130,16 @@ test('landing preview matches the sample water total', async ({ page }) => {
   await expect(page.locator('.preview-map')).toContainText('Water lines: 16.8 m');
   await page.goto('/demo');
   await expect(page.locator('.map-footer')).toContainText('Water lines: 16.8 m');
+});
+
+test('the first-screen sample action opens the isolated query demo with reset controls', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'Map beds, plants, care notes, and water lines' })).toBeVisible();
+  await page.getByRole('button', { name: 'Try it with sample data' }).click();
+  await expect(page).toHaveURL(/\?demo=1$/);
+  await expect(page.getByText('Demo — sample data, nothing is saved')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Reset demo' })).toBeVisible();
+  await expect(page.locator('[data-kind="bed"]')).toHaveCount(4);
 });
 
 test('an installed service-worker update is announced', async ({ page }) => {
