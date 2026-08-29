@@ -19,6 +19,22 @@ test('all first-screen facts fit in the 390 pixel landing viewport', async ({ pa
   }
 });
 
+test('the shared mobile header keeps every required destination visible', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  for (const path of ['/', '/?demo=1', '/demo', '/map', '/privacy', '/terms', '/404.html']) {
+    await page.goto(path);
+    const navigation = page.getByRole('navigation', { name: 'Main navigation' });
+    for (const name of ['Demo', 'My map', 'Privacy']) {
+      const link = navigation.getByRole('link', { name, exact: true });
+      await expect(link, `${name} should stay visible on ${path}`).toBeVisible();
+      const box = await link.boundingBox();
+      expect(box?.x).toBeGreaterThanOrEqual(0);
+      expect((box?.x ?? Infinity) + (box?.width ?? 0)).toBeLessThanOrEqual(390);
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  }
+});
+
 test('keyboard tool places a bed', async ({ page }) => {
   await page.goto('/map');
   await page.getByRole('button', { name: 'Add the first bed' }).click();

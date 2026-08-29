@@ -2,18 +2,18 @@
 
 Garden Care Map is an offline field notebook for small-space gardeners. Draw beds, pin plants, record dated care, and measure connected water lines on one map.
 
-Try the isolated sample at `/?demo=1` or `/demo`. Demo changes use `demo:garden`; the real map uses `real:garden`. Every demo exit deletes the demo changes.
+Try the isolated sample at `/?demo=1` or `/demo`. Demo changes stay separate from your map and are discarded when you leave.
 
 ## What it does
 
-- Stores beds, plants, optional note photos, and care history in IndexedDB.
+- Stores garden records and optional note photos in this browser.
 - Measures water-line segments in meters or feet and shows their total.
 - Exports the complete garden as JSON and every care note as CSV.
 - Reopens offline after the first complete visit.
 - Keeps all normal map use on this device.
 - Verifies existing season keeper licenses through Sociobot billing.
 
-The free map includes all care, mapping, photo, and export tools. A $12 one-time season keeper license adds named season snapshots. Sociobot and Dodo are the merchant of record.
+The free map includes all care, mapping, photo, and export tools. A $12 one-time season keeper license adds named season snapshots. The purchase opens Sociobot checkout.
 
 ## Run and test
 

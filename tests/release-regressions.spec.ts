@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 test('@claim:season-keeper-checkout season keeper states its price and opens hosted Sociobot checkout', async ({ page, request }) => {
   await page.goto('/');
   await expect(page.getByText('$12 one-time purchase', { exact: true })).toBeVisible();
+  await expect(page.getByText('The purchase button opens Sociobot checkout.', { exact: true })).toBeVisible();
   await expect(page.getByRole('link', { name: /Buy the season keeper/ })).toHaveAttribute('href', 'https://api.sociobot.in/api/v1/products/garden-care-map/checkout');
   await expect(page.getByRole('button', { name: 'Restore a license' })).toBeVisible();
   await page.goto('/map');
@@ -12,6 +13,11 @@ test('@claim:season-keeper-checkout season keeper states its price and opens hos
   const checkout = await request.get('https://api.sociobot.in/api/v1/products/garden-care-map/checkout', { maxRedirects: 0 });
   expect(checkout.status()).toBe(303);
   expect(checkout.headers().location).toMatch(/^https:\/\/checkout\.dodopayments\.com\/session\//);
+
+  await page.goto('/terms');
+  await expect(page.locator('.prose-page')).toContainText('The purchase button opens Sociobot checkout.');
+  const readme = await readFile('README.md', 'utf8');
+  expect(readme).toContain('The purchase opens Sociobot checkout.');
 });
 
 test('rejects a structurally invalid import without changing or corrupting the saved map', async ({ page }) => {
@@ -112,8 +118,47 @@ test('every application route sets complete route metadata', async ({ page }) =>
 
 test('the static 404 has the required product shell and metadata', async () => {
   const html = await readFile('public/404.html', 'utf8');
-  for (const required of ['<header', '<main id="main"', '<footer', 'Page not found', 'href="/privacy"', 'href="/terms"', 'rel="canonical"', 'name="description"', 'property="og:title"', 'name="twitter:title"', 'favicon.svg', 'apple-touch-icon']) {
+  for (const required of ['<header', '<main id="main"', '<footer', 'Page not found', 'href="/privacy"', 'href="/terms"', 'rel="canonical"', 'name="description"', 'property="og:title"', 'name="twitter:title"', 'favicon.svg', 'apple-touch-icon', 'prefers-color-scheme:dark', '(external site)']) {
     expect(html).toContain(required);
+  }
+});
+
+test('the static 404 uses the dark field-notebook palette and names its external footer link', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await page.goto('/404.html');
+  await expect(page.getByRole('heading', { name: 'Page not found' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Built by Param Factory (external site)' })).toBeVisible();
+  const colors = await page.evaluate(() => ({
+    page: getComputedStyle(document.body).backgroundColor,
+    text: getComputedStyle(document.body).color,
+    action: getComputedStyle(document.querySelector<HTMLElement>('.action')!).backgroundColor
+  }));
+  expect(colors).toEqual({ page: 'rgb(23, 28, 24)', text: 'rgb(242, 240, 229)', action: 'rgb(131, 183, 140)' });
+});
+
+test('unsupported merchant and storage-engine claims are absent from visitor copy', async () => {
+  const [appSource, readme] = await Promise.all([
+    readFile('src/main.ts', 'utf8'),
+    readFile('README.md', 'utf8')
+  ]);
+  const visitorCopy = `${appSource}\n${readme}`;
+  expect(visitorCopy).not.toContain('merchant of record');
+  expect(readme).not.toContain('Demo changes use `demo:garden`');
+  expect(readme).not.toContain('in IndexedDB');
+});
+
+test('every declared claim has exactly one matching tagged browser test', async () => {
+  const claims = JSON.parse(await readFile('.factory/claims.json', 'utf8')) as Array<{ id: string; test: string }>;
+  const sources = (await Promise.all([
+    readFile('tests/accessibility.spec.ts', 'utf8'),
+    readFile('tests/claims.spec.ts', 'utf8'),
+    readFile('tests/mobile.spec.ts', 'utf8'),
+    readFile('tests/release-regressions.spec.ts', 'utf8')
+  ])).join('\n');
+  expect(new Set(claims.map(({ id }) => id)).size).toBe(claims.length);
+  for (const claim of claims) {
+    expect(claim.test).toBe(`npm test -- --grep @claim:${claim.id}`);
+    expect(sources.split(`@claim:${claim.id}`).length - 1, claim.id).toBe(1);
   }
 });
 

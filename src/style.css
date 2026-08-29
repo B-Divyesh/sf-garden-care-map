@@ -925,9 +925,6 @@ footer p:last-child {
   }
 }
 @media (max-width: 800px) {
-  .site-header nav a:first-child {
-    display: none;
-  }
   .hero {
     grid-template-columns: 1fr;
     min-height: auto;
@@ -1056,15 +1053,17 @@ footer p:last-child {
     flex-wrap: wrap;
   }
 }
+@media (max-width: 420px) {
+  .wordmark span {
+    display: none;
+  }
+}
 @media (max-width: 260px) {
   .site-header {
     height: auto;
     min-height: 56px;
     gap: 4px;
     padding-inline: 8px;
-  }
-  .wordmark span {
-    display: none;
   }
   .site-header nav {
     gap: 2px;

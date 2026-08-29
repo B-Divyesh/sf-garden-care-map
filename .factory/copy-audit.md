@@ -1,6 +1,6 @@
-# Copy audit — polish 3
+# Copy audit — polish 4
 
-Checked 2026-08-29. Visitor copy uses **bed**, **plant**, **care note**, **water line**, **garden map**, and **season snapshot** consistently. No sentence exceeds 22 words. No banned marketing word remains.
+Checked 2026-08-29. Visitor copy uses **bed**, **plant**, **care note**, **water line**, **garden map**, and **season snapshot** consistently. No sentence exceeds 22 words. No banned marketing word remains. Unsupported storage-engine and merchant assertions were removed.
 
 ## Landing page
 
@@ -34,7 +34,7 @@ Checked 2026-08-29. Visitor copy uses **bed**, **plant**, **care note**, **water
 | Save named season snapshots for $12 | 6 | Plain result and price |
 | The free map includes every core tool and data export. | 10 | `free-core-tools` claim |
 | A one-time purchase adds named season snapshots on this device. | 10 | `license-verify` claim |
-| Sociobot and Dodo are the merchant of record. | 8 | `season-keeper-checkout` claim |
+| The purchase button opens Sociobot checkout. | 6 | `season-keeper-checkout` claim |
 | Map beds, plants, care notes, and water lines in one place. | 11 | Concrete footer description |
 
 ## README
@@ -44,9 +44,8 @@ Checked 2026-08-29. Visitor copy uses **bed**, **plant**, **care note**, **water
 | Garden Care Map is an offline field notebook for small-space gardeners. | 11 | Names product and audience |
 | Draw beds, pin plants, record dated care, and measure connected water lines on one map. | 15 | Clear job |
 | Try the isolated sample at `/?demo=1` or `/demo`. | 8 | Clear demo entry |
-| Demo changes use `demo:garden`; the real map uses `real:garden`. | 11 | Concrete namespace detail |
-| Every demo exit deletes the demo changes. | 7 | `demo-isolation` claim |
-| Stores beds, plants, optional note photos, and care history in IndexedDB. | 11 | Storage behavior |
+| Demo changes stay separate from your map and are discarded when you leave. | 12 | `demo-isolation` claim |
+| Stores garden records and optional note photos in this browser. | 9 | `local-private` and `local-note-photo` claims |
 | Measures water-line segments in meters or feet and shows their total. | 11 | `water-total` claim |
 | Exports the complete garden as JSON and every care note as CSV. | 12 | Export claims |
 | Reopens offline after the first complete visit. | 7 | `offline-reload` claim |
@@ -54,7 +53,7 @@ Checked 2026-08-29. Visitor copy uses **bed**, **plant**, **care note**, **water
 | Verifies existing season keeper licenses through Sociobot billing. | 8 | License claim |
 | The free map includes all care, mapping, photo, and export tools. | 11 | `free-core-tools` claim |
 | A $12 one-time season keeper license adds named season snapshots. | 10 | License and checkout claims |
-| Sociobot and Dodo are the merchant of record. | 8 | Hosted checkout claim |
+| The purchase opens Sociobot checkout. | 5 | `season-keeper-checkout` claim |
 | Requirements: Node.js 20 or newer. | 6 | Clear requirement |
 | Open `http://localhost:5173/?demo=1` for the sample. | 8 | Clear instruction |
 | Run the full production and browser test gate. | 8 | Clear instruction |
@@ -68,6 +67,10 @@ Checked 2026-08-29. Visitor copy uses **bed**, **plant**, **care note**, **water
 | See `/privacy` and `/terms` in the built site. | 8 | Clear route instruction |
 | The source code is available under the MIT License. | 9 | Clear license statement |
 | The generated field-guide artwork is original to this product; its prompt and provenance are recorded in `.factory/design.md`. | 19 | Provenance statement |
+
+## Legal-page claim check
+
+Privacy repeats only tested behavior: local garden records (`local-private`), local note photos (`local-note-photo`), demo separation (`demo-isolation`), and Sociobot license traffic (`license-network-origin`). Terms repeat the tested $12 one-time purchase and Sociobot checkout (`season-keeper-checkout`). Neither page names an untested browser storage engine or merchant-of-record status.
 
 ## Terminology
 

@@ -1,4 +1,4 @@
-const CACHE = 'garden-care-map-v7';
+const CACHE = 'garden-care-map-v8';
 const SHELL = ['/', '/?demo=1', '/demo', '/map', '/privacy', '/terms', '/offline.html', '/manifest.webmanifest?v=20260829', '/favicon.svg?v=20260829', '/assets/garden-field-guide-640.webp?v=20260829'];
 
 self.addEventListener('install', event => {

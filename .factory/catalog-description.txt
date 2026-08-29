@@ -1,1 +1,1 @@
-Map beds, plants, care notes, and water lines in a private offline garden record.
+Map garden beds, plants, care notes, and water lines in one private offline record.
