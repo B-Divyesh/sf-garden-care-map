@@ -1,4 +1,4 @@
-# Copy audit — polish 2
+# Copy audit — polish 3
 
 Checked 2026-08-29. Visitor copy uses **bed**, **plant**, **care note**, **water line**, **garden map**, and **season snapshot** consistently. No sentence exceeds 22 words. No banned marketing word remains.
 
@@ -9,7 +9,7 @@ Checked 2026-08-29. Visitor copy uses **bed**, **plant**, **care note**, **water
 | Map beds, plants, care notes, and water lines | 8 | Verb-first job headline; precise product terms |
 | For small-space gardeners who need every planting and care note tied to its real place. | 15 | Names audience and outcome |
 | Try it with sample data | 5 | Clear primary action |
-| It opens a complete garden map. | 6 | Explains result |
+| It opens a complete garden map. | 6 | `sample-demo` claim; the hero action is tested through the complete seeded map |
 | Demo changes stay separate. | 4 | `demo-isolation` claim |
 | Start my blank map | 4 | Clear secondary action |
 | Garden data stays in this browser. | 6 | `local-private` claim |
