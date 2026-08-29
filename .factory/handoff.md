@@ -1,4 +1,25 @@
-# Garden Care Map — polish 2 handoff
+# Garden Care Map — review 3 handoff
+
+## Review result
+
+The independent adversarial review is **FAIL** with one minor documentation/claims-contract finding: `F-3-1` in `.factory/review-3.md`. The landing promise **“It opens a complete garden map.”** has no dedicated `claims.json` entry and no `@claim:`-tagged test, although an untagged regression already exercises that behavior. No product code was changed in this review.
+
+## Review verification
+
+- Fresh live checks at 390 × 844 and 1440 × 900: first read is clear; one-click demo is populated, sandboxed, resettable, and can start a blank real map.
+- Demo request log: only `https://garden-care-map.sociobot.in`; no cold-load console or page error.
+- Live route and metadata check: `/`, `/?demo=1`, `/demo`, `/map`, `/privacy`, `/terms` returned 200; `/missing-page` returned 404; titles, h1s, descriptions, canonicals, OG, and focus-on-route-change were verified.
+- Disposable clean clone: `/tmp/garden-care-map-review3.nQipK1` at `3ad41d497c3ec2f723b58b951682ed73f6feca50`; `npm ci` reported zero vulnerabilities.
+- All 12 declared claim commands passed individually. `npm test` passed 48/48; `npm run lint`, `npm run typecheck`, and `npm run build` passed. Clean build output was 56.50 kB / 17.91 kB gzip.
+- The live HTML SHA-256 matched the clean-clone build: `11fd7a26f8cd6cfff055279f1acd2d17ca085159c47cf657084b7d044e19af3c`.
+
+## Next step
+
+Add a `sample-demo` entry to `.factory/claims.json` and tag the existing first-screen demo regression `@claim:sample-demo`, asserting the action opens the seeded complete sample. Rerun the claims and full suite. See `.factory/review-3.md` for the exact required contract.
+
+---
+
+# Previous polish 2 handoff
 
 ## Result
 
